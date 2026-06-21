@@ -76,7 +76,7 @@ function updateAgentList(loadedModels, agentContexts) {
 
         const li = document.createElement("li");
         li.className = "agent-item";
-        li.setAttribute("data-tooltip", `Model VRAM: ${agent.size} GB. Max Context: ${(agent.max_context/1000).toFixed(0)}k tokens.`);
+        li.setAttribute("data-tooltip", `${agent.name} | VRAM: ${agent.size} GB | Max Context: ${(agent.max_context/1000).toFixed(0)}k tokens`);
         li.innerHTML = `
             <div class="agent-info">
                 <div class="agent-name-row">
@@ -107,6 +107,7 @@ function updateMCPList(servers) {
     servers.forEach(server => {
         const li = document.createElement("li");
         li.className = `mcp-item ${server.status}`;
+        li.setAttribute("data-tooltip", `${server.name.toUpperCase()} Server (${server.status})`);
         li.innerHTML = `
             <i class="fa-solid fa-link"></i>
             <span>${server.name} (${server.status})</span>

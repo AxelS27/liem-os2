@@ -556,9 +556,17 @@ body {
     padding: 0 10px;
     height: 40px;
     align-items: center;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none; /* Hide scrollbar for Firefox */
+}
+
+.tabs-nav::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari/Edge */
 }
 
 .tab-btn {
+    flex-shrink: 0;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
@@ -592,17 +600,20 @@ body {
 /* TAB PANELS */
 .tab-content {
     display: none;
-    height: calc(100vh - 110px); /* Adjust for header and tab nav height */
+    flex-grow: 1;
+    min-height: 0;
     overflow: hidden;
 }
 
 .tab-content.active {
-    display: block;
+    display: flex;
+    flex-direction: column;
 }
 
 .tab-panel-body {
     padding: 24px;
-    height: 100%;
+    flex-grow: 1;
+    min-height: 0;
     overflow-y: auto;
 }
 
@@ -937,26 +948,125 @@ body {
 }
 
 /* RESPONSIVE LAYOUT MEDIA QUERIES */
-@media (max-width: 1000px) {
-    .app-container {
-        flex-direction: column;
-        overflow-y: auto;
-    }
-    
+@media (max-width: 950px) {
     .sidebar {
+        width: 250px;
+        padding: 15px;
+    }
+    .telemetry-grid {
+        gap: 6px;
+    }
+    .telemetry-card {
+        padding: 8px;
+    }
+    .agent-item {
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        width: 60px;
+        padding: 15px 5px;
+        align-items: center;
+    }
+    
+    .sidebar-header {
+        justify-content: center;
         width: 100%;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-        padding: 16px;
+        margin-bottom: 20px;
     }
     
-    .console-area {
-        height: auto;
-        flex-grow: 1;
+    .logo span, .add-btn, .section-title {
+        display: none !important;
     }
     
-    .tab-content {
-        height: 500px;
+    .logo i {
+        margin-right: 0;
+        font-size: 20px;
+    }
+    
+    .telemetry-grid {
+        display: none !important;
+    }
+    
+    .agent-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        align-items: center;
+    }
+    
+    .agent-item {
+        padding: 6px;
+        border: none;
+        background: transparent;
+        margin-bottom: 0;
+        justify-content: center;
+        width: auto;
+    }
+    
+    .agent-info .agent-name-row .agent-name,
+    .agent-info .context-progress-container,
+    .vram-badge {
+        display: none !important;
+    }
+    
+    .agent-info .agent-name-row .status-dot {
+        margin-right: 0;
+        width: 10px;
+        height: 10px;
+    }
+    
+    .mcp-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .mcp-item {
+        margin-bottom: 0;
+    }
+    
+    .mcp-item span {
+        display: none !important;
+    }
+    
+    .mcp-item i {
+        margin-right: 0;
+        font-size: 16px;
+    }
+    
+    .plan-list {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .plan-item span {
+        display: none !important;
+    }
+    
+    .plan-item i {
+        margin-right: 0;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .terminal-welcome pre {
+        font-size: 8px;
+        line-height: 1.2;
+    }
+    .console-header {
+        padding: 10px;
+    }
+    .console-footer {
+        padding: 10px;
+    }
+    .bubble-user, .bubble-copilot {
+        max-width: 90%;
     }
 }
