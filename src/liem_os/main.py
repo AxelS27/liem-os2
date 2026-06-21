@@ -261,35 +261,15 @@ def cli_entrypoint():
     print(f"  python src/liem_os/main.py")
 
 if __name__ == "__main__":
-    import socket
-    import subprocess
     import webbrowser
-    import time
-
-    def is_port_open(host, port):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            return s.connect_ex((host, port)) == 0
-
-    if not is_port_open("127.0.0.1", 8000):
-        print("[Main] Dashboard server is offline. Spawning background server at http://127.0.0.1:8000/...")
-        server_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "server.py")
-        
-        creation_flags = 0
-        if os.name == 'nt':
-            creation_flags = 0x00000008  # DETACHED_PROCESS
-            
-        subprocess.Popen(
-            [sys.executable, server_file],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            creationflags=creation_flags,
-            close_fds=True
-        )
-        # Give uvicorn some time to bind the port
-        time.sleep(1.5)
+    import uvicorn
+    from liem_os.server import app
 
     print("[Main] Launching Web Dashboard in default browser...")
-    webbrowser.open("http://127.0.0.1:8000/")
-    
-    asyncio.run(run_liem_pipeline())
+    try:
+        webbrowser.open("http://127.0.0.1:8000/")
+    except Exception as e:
+         print(f"[Main] Warning: Could not open browser automatically: {e}")
+         
+    print("[Main] Starting Dashboard server on http://127.0.0.1:8000 ...")
+    uvicorn.run(app, host="127.0.0.1", port=8000)

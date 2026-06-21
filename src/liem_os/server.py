@@ -68,6 +68,58 @@ class HITLAction(BaseModel):
     task_id: str
     action: str  # "approve" or "reject"
 
+async def run_pipeline_simulation_task(prompt: str):
+    # Setup dummy file for patching
+    dummy_file = "finance_tool.py"
+    with open(dummy_file, "w", encoding="utf-8") as f:
+        f.write("def calculate_tax(amount):\n    return amount * 0.1\n")
+
+    db.save_execution("exec-100", "running", {"objective": prompt})
+    
+    # Trigger Axel
+    vram_manager.load_model("axel")
+    telemetry_data["logs"].append("[Axel] Parsing user request and initializing planning graph...")
+    await asyncio.sleep(1.0)
+    vram_manager.unload_model("axel")
+
+    # Trigger Planner
+    vram_manager.load_model("planner")
+    telemetry_data["logs"].append("[Planner] Planning graph generated: Task T-001 created.")
+    await asyncio.sleep(1.0)
+    vram_manager.unload_model("planner")
+
+    # Custom event handler to simulate runs
+    async def run_agent(event):
+        task_id = event["task_id"]
+        agent = event["agent_name"]
+        vram_manager.load_model(agent)
+        
+        task = db.get_task(task_id)
+        retry = task["retry_count"]
+        
+        telemetry_data["logs"].append(f"[{agent}] Executing task {task_id} (Iteration {retry})...")
+        await asyncio.sleep(1.5)
+
+        if retry == 0:
+            telemetry_data["logs"].append(f"[{agent}] Logic generated. Running validation checks...")
+            await scheduler.handle_validation_failure(task_id)
+        elif retry == 1:
+            telemetry_data["logs"].append(f"[{agent}] Applying AST Node patch...")
+            replace_block = """def calculate_tax(amount, rate=0.1):\n    if amount < 0:\n        raise ValueError("Amount cannot be negative")\n    return amount * rate"""
+            compressor.apply_ast_injection(dummy_file, "calculate_tax", replace_block)
+            telemetry_data["logs"].append(f"[Validator] Validation PASSED. Task T-001 complete.")
+            await scheduler.transition_task(task_id, "completed")
+
+    event_bus._listeners["task.status.running"] = [run_agent]
+
+    # Dispatch Task
+    await scheduler.dispatch_task(
+        task_id="T-001",
+        target_agent="backend_agent",
+        payload={"objective": "Implement calculate_tax with validation", "file": dummy_file},
+        execution_id="exec-100"
+    )
+
 @app.on_event("startup")
 async def startup_event():
     await kernel.boot()
@@ -75,6 +127,13 @@ async def startup_event():
     event_bus.subscribe("task.status.running", on_task_running)
     event_bus.subscribe("task.status.completed", on_task_completed)
     event_bus.subscribe("task.status.failed", on_task_failed)
+    
+    # Run the demo pipeline in the background on startup (wait 1.5s for page to load)
+    async def initial_run():
+        await asyncio.sleep(1.5)
+        await run_pipeline_simulation_task("@axel build a finance calculation tool that handles exceptions.")
+        
+    asyncio.create_task(initial_run())
 
 async def on_task_running(event: Dict[str, Any]):
     task_id = event["task_id"]
@@ -128,61 +187,7 @@ async def trigger_prompt(req: PromptRequest):
     logger = logging.getLogger("LiemServer")
     logger.info(f"Received prompt command: {req.prompt}")
     telemetry_data["logs"].append(f"[User] {req.prompt}")
-    
-    # Run the demo pipeline in the background
-    async def run_pipeline_task():
-        # Setup dummy file for patching
-        dummy_file = "finance_tool.py"
-        with open(dummy_file, "w", encoding="utf-8") as f:
-            f.write("def calculate_tax(amount):\n    return amount * 0.1\n")
-
-        db.save_execution("exec-100", "running", {"objective": req.prompt})
-        
-        # Trigger Axel
-        vram_manager.load_model("axel")
-        telemetry_data["logs"].append("[Axel] Parsing user request and initializing planning graph...")
-        await asyncio.sleep(1.0)
-        vram_manager.unload_model("axel")
-
-        # Trigger Planner
-        vram_manager.load_model("planner")
-        telemetry_data["logs"].append("[Planner] Planning graph generated: Task T-001 created.")
-        await asyncio.sleep(1.0)
-        vram_manager.unload_model("planner")
-
-        # Custom event handler to simulate runs
-        async def run_agent(event):
-            task_id = event["task_id"]
-            agent = event["agent_name"]
-            vram_manager.load_model(agent)
-            
-            task = db.get_task(task_id)
-            retry = task["retry_count"]
-            
-            telemetry_data["logs"].append(f"[{agent}] Executing task {task_id} (Iteration {retry})...")
-            await asyncio.sleep(1.5)
-
-            if retry == 0:
-                telemetry_data["logs"].append(f"[{agent}] Logic generated. Running validation checks...")
-                await scheduler.handle_validation_failure(task_id)
-            elif retry == 1:
-                telemetry_data["logs"].append(f"[{agent}] Applying AST Node patch...")
-                replace_block = """def calculate_tax(amount, rate=0.1):\n    if amount < 0:\n        raise ValueError("Amount cannot be negative")\n    return amount * rate"""
-                compressor.apply_ast_injection(dummy_file, "calculate_tax", replace_block)
-                telemetry_data["logs"].append(f"[Validator] Validation PASSED. Task T-001 complete.")
-                await scheduler.transition_task(task_id, "completed")
-
-        event_bus._listeners["task.status.running"] = [run_agent]
-
-        # Dispatch Task
-        await scheduler.dispatch_task(
-            task_id="T-001",
-            target_agent="backend_agent",
-            payload={"objective": "Implement calculate_tax with validation", "file": dummy_file},
-            execution_id="exec-100"
-        )
-        
-    asyncio.create_task(run_pipeline_task())
+    asyncio.create_task(run_pipeline_simulation_task(req.prompt))
     return {"status": "dispatched", "message": "LIEM OS execution pipeline started."}
 
 @app.post("/api/hitl/action")
@@ -210,4 +215,4 @@ else:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
