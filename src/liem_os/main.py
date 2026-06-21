@@ -3,17 +3,17 @@ import os
 import sys
 import logging
 
-# Ensure src/ directory is in sys.path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Add src/ directory to sys.path to allow absolute imports of liem_os package
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from storage.sqlite_db import SQLiteStateRepository
-from kernel.event_bus import EventBus
-from kernel.vram_manager import VRAMManager
-from kernel.event_loop import KernelEventLoop
-from kernel.scheduler import CoreScheduler
-from kernel.recovery import RecoveryManager
-from agents.context import ContextCompressor
-from agents.base import LiemBaseAgent
+from liem_os.storage.sqlite_db import SQLiteStateRepository
+from liem_os.kernel.event_bus import EventBus
+from liem_os.kernel.vram_manager import VRAMManager
+from liem_os.kernel.event_loop import KernelEventLoop
+from liem_os.kernel.scheduler import CoreScheduler
+from liem_os.kernel.recovery import RecoveryManager
+from liem_os.agents.context import ContextCompressor
+from liem_os.agents.base import LiemBaseAgent
 
 # Set up logging to stdout
 logging.basicConfig(
@@ -199,10 +199,10 @@ def cli_entrypoint():
     print(f"Initializing new LIEM OS project: {project_name}...")
 
     # Folders to copy
-    folders = ["kernel", "agents", "schemas", "registry", "sandbox"]
+    folders = ["kernel", "agents", "schemas", "registry", "sandbox", "src"]
 
     # Try copying from local installation source
-    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     copied_locally = True
     for f in folders:
         src_path = os.path.join(base_path, f)
@@ -238,30 +238,23 @@ def cli_entrypoint():
                                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                                 with open(dest_path, "wb") as out_f:
                                     out_f.write(zip_ref.read(member))
-            print("Successfully initialized templates from GitHub repository.")
+            print("Successfully initialized templates and engine from GitHub repository.")
         except Exception as e:
             print(f"Error downloading templates from GitHub: {e}")
             sys.exit(1)
 
-    # Copy src/ folder to project_name/src/ to provide the runtime engine locally!
-    src_dir = os.path.join(base_path, "src")
-    if os.path.exists(src_dir):
-        shutil.copytree(src_dir, os.path.join(project_name, "src"))
-        print("Successfully copied runtime engine source.")
-    else:
-        # If running from local source tree where main.py is inside src/
-        # base_path itself is the root, and we copy from it
-        src_local = os.path.dirname(os.path.abspath(__file__))
-        if os.path.exists(src_local) and os.path.basename(src_local) == "src":
-            shutil.copytree(src_local, os.path.join(project_name, "src"))
-            print("Successfully copied runtime engine source.")
-        else:
-            print("Warning: Local source directory not found. Please verify the installation.")
+    # Restructure from package naming if extracted
+    # If the user runs python src/main.py, we make sure they have a correct package path
+    # by adding an empty __init__.py inside src/liem_os if not present
+    init_py = os.path.join(project_name, "src", "liem_os", "__init__.py")
+    if os.path.exists(os.path.dirname(init_py)) and not os.path.exists(init_py):
+        with open(init_py, "w") as f:
+            pass
 
     print(f"\nProject '{project_name}' successfully initialized!")
     print(f"To run the engine:")
     print(f"  cd {project_name}")
-    print(f"  python src/main.py")
+    print(f"  python src/liem_os/main.py")
 
 if __name__ == "__main__":
     asyncio.run(run_liem_pipeline())
