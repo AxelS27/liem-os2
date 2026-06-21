@@ -261,15 +261,29 @@ def cli_entrypoint():
     print(f"  python src/liem_os/main.py")
 
 if __name__ == "__main__":
-    import webbrowser
+    import threading
+    import webview
     import uvicorn
     from liem_os.server import app
 
-    print("[Main] Launching Web Dashboard in default browser...")
-    try:
-        webbrowser.open("http://127.0.0.1:8000/")
-    except Exception as e:
-         print(f"[Main] Warning: Could not open browser automatically: {e}")
-         
-    print("[Main] Starting Dashboard server on http://127.0.0.1:8000 ...")
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    def start_server():
+        # Run uvicorn server silently in a background thread
+        uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+
+    print("[Main] Starting Dashboard server on http://127.0.0.1:8000 in background...")
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+
+    print("[Main] Launching Native Desktop GUI Application...")
+    # Open pywebview native desktop window loading the FastAPI root
+    webview.create_window(
+        title="LIEM OS - Enterprise Multi-Agent Orchestrator",
+        url="http://127.0.0.1:8000/",
+        width=1280,
+        height=800,
+        resizable=True,
+        min_size=(1024, 768)
+    )
+    # Start the desktop window loop (blocks until window is closed)
+    webview.start()
+    print("[Main] Desktop GUI window closed. Exiting LIEM OS.")

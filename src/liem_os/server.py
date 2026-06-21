@@ -203,11 +203,7 @@ async def hitl_action(req: HITLAction):
 # Serve Dashboard files
 DASHBOARD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard")
 if os.path.exists(DASHBOARD_DIR):
-    app.mount("/dashboard", StaticFiles(directory=DASHBOARD_DIR, html=True), name="dashboard")
-    
-    @app.get("/")
-    async def root():
-        return FileResponse(os.path.join(DASHBOARD_DIR, "index.html"))
+    app.mount("/", StaticFiles(directory=DASHBOARD_DIR, html=True), name="dashboard")
 else:
     @app.get("/")
     async def root():
