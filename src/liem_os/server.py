@@ -187,7 +187,33 @@ async def trigger_prompt(req: PromptRequest):
     logger = logging.getLogger("LiemServer")
     logger.info(f"Received prompt command: {req.prompt}")
     telemetry_data["logs"].append(f"[User] {req.prompt}")
-    asyncio.create_task(run_pipeline_simulation_task(req.prompt))
+    
+    prompt_lower = req.prompt.strip().lower()
+    greetings = ["halo", "hello", "hi", "hey", "p", "test", "apa kabar", "siapa kamu", "who are you", "help", "tolong", "siapa"]
+    
+    # Check if prompt is a short conversational input or greeting
+    if any(g in prompt_lower for g in greetings) or len(prompt_lower.split()) < 3:
+        async def run_conversational_reply():
+            vram_manager.load_model("axel")
+            await asyncio.sleep(0.8)
+            
+            if "siapa" in prompt_lower or "who" in prompt_lower:
+                reply = "[Axel] Saya adalah Axel, User Copilot pendamping kamu di LIEM OS. Tugas saya membantu mendelegasikan tugas ke agent spesialis (seperti Backend Agent, QA Agent, dan DevOps Agent) serta memonitor perkembangannya."
+            elif "apa kabar" in prompt_lower or "how are you" in prompt_lower:
+                reply = "[Axel] Saya sangat baik! Seluruh sistem LIEM OS berjalan optimal. VRAM aman, MCP servers terkoneksi, dan saya siap membantu pengerjaan project kamu."
+            elif "help" in prompt_lower or "tolong" in prompt_lower:
+                reply = "[Axel] Kamu bisa memerintahkan saya untuk membuat project baru, seperti:\n- 'Buat payment endpoint dengan Stripe'\n- 'Bikin API kalkulator pajak'\n- 'Tolong audit keamanan kode'"
+            else:
+                reply = "[Axel] Halo! Ada yang bisa saya bantu hari ini? Tulis perintah coding yang kamu inginkan, dan saya akan koordinasikan agent-agent spesialis untuk mengerjakannya."
+                
+            telemetry_data["logs"].append(reply)
+            vram_manager.unload_model("axel")
+            
+        asyncio.create_task(run_conversational_reply())
+    else:
+        # Trigger the code generation pipeline simulation
+        asyncio.create_task(run_pipeline_simulation_task(req.prompt))
+        
     return {"status": "dispatched", "message": "LIEM OS execution pipeline started."}
 
 @app.post("/api/hitl/action")
