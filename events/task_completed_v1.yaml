@@ -1,0 +1,6 @@
+event: "TASK_COMPLETED"
+version: 1.0
+payload:
+  task_id: "uuid"
+  artifact_ref: "artifact://..."
+  status: "completed"

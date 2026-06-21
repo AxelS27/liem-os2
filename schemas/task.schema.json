@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LiemTask",
+  "type": "object",
+  "properties": {
+    "task_id": { "type": "string" },
+    "idempotency_key": { "type": "string" },
+    "parent_task_id": { "type": ["string", "null"] },
+    "source_agent": { "type": "string" },
+    "target_agent": { "type": "string" },
+    "status": { 
+      "type": "string", 
+      "enum": ["pending", "running", "completed", "failed"] 
+    },
+    "payload": {
+      "type": "object",
+      "properties": {
+        "objective": { "type": "string" },
+        "inputs": { "type": "object" }
+      },
+      "required": ["objective", "inputs"]
+    },
+    "timestamp": { "type": "string", "format": "date-time" }
+  },
+  "required": ["task_id", "idempotency_key", "source_agent", "target_agent", "status", "payload", "timestamp"]
+}

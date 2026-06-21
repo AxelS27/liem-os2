@@ -1,0 +1,14 @@
+# LIEM OS - Admission Control Configuration
+# Restricts incoming tasks to prevent cost/token overload.
+
+admission_rules:
+  concurrency_limit: 8
+  priority_queues:
+    - "critical"
+    - "interactive"
+    - "batch"
+    - "research"
+  gates:
+    max_cost_limit_usd: 2.00
+    max_token_limit: 100000
+    action_on_overload: "DELAY" # DELAY / REJECT

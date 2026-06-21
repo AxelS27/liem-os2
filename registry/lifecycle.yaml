@@ -1,0 +1,22 @@
+# LIEM OS - Agent Lifecycle Registry
+# Defines the ownership, versioning, and lifecycle states of all system agents.
+
+lifecycle_policies:
+  states:
+    - "draft"
+    - "active"
+    - "deprecated"
+    - "archived"
+
+agent_versions:
+  - id: "swe_pm"
+    version: "2.0"
+    status: "active"
+    owner: "core_pm"
+    deprecated: false
+  
+  - id: "swe_architect"
+    version: "2.0"
+    status: "active"
+    owner: "core_engineering"
+    deprecated: false

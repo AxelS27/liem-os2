@@ -1,0 +1,15 @@
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local databases and runtime state files
+runtime/*.db
+runtime/*.db-journal
+runtime/*.db-wal
+runtime/*.db-shm
+runtime/finance_tool.py
+
+# OS caches
+.DS_Store
+Thumbs.db

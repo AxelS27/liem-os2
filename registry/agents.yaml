@@ -1,0 +1,95 @@
+# LIEM OS - Agent Registry
+# Declares all agents in the system and their respective capability mappings.
+
+agents:
+  - id: "swe_pm"
+    path: "agents/swe/pm_agent.md"
+    capabilities: ["product_management", "prd_writing", "user_stories"]
+  - id: "swe_architect"
+    path: "agents/swe/architect_agent.md"
+    capabilities: ["system_design", "database_schema", "api_design"]
+  - id: "swe_frontend"
+    path: "agents/swe/frontend_agent.md"
+    capabilities: ["frontend_dev", "ui_components"]
+  - id: "swe_backend"
+    path: "agents/swe/backend_agent.md"
+    capabilities: ["backend_dev", "api_implementation"]
+  - id: "swe_qa"
+    path: "agents/swe/qa_agent.md"
+    capabilities: ["qa_testing", "automated_tests"]
+  - id: "swe_devops"
+    path: "agents/swe/devops_agent.md"
+    capabilities: ["devops_automation", "ci_cd_pipelines"]
+  - id: "swe_reviewer"
+    path: "agents/swe/reviewer_agent.md"
+    capabilities: ["code_review", "code_audits"]
+  - id: "swe_dba"
+    path: "agents/swe/dba_agent.md"
+    capabilities: ["database_admin", "sql_optimization"]
+  - id: "swe_sre"
+    path: "agents/swe/sre_agent.md"
+    capabilities: ["site_reliability", "caching_infrastructure"]
+  - id: "swe_ml"
+    path: "agents/swe/ml_agent.md"
+    capabilities: ["ai_ml_engineering", "prompt_optimization"]
+
+  - id: "research_search"
+    path: "agents/research/search_agent.md"
+    capabilities: ["web_harvesting", "scraping"]
+  - id: "research_synthesis"
+    path: "agents/research/synthesis_agent.md"
+    capabilities: ["information_synthesis", "reporting"]
+  - id: "research_analyst"
+    path: "agents/research/analyst_agent.md"
+    capabilities: ["data_analytics", "statistical_modeling"]
+
+  - id: "security_sast"
+    path: "agents/security/sast_agent.md"
+    capabilities: ["code_sast_scan", "cve_audits"]
+  - id: "security_threat"
+    path: "agents/security/threat_agent.md"
+    capabilities: ["threat_modeling", "risk_assessment"]
+
+  - id: "support_triage"
+    path: "agents/support/triage_agent.md"
+    capabilities: ["support_triage", "sla_routing"]
+  - id: "support_customer"
+    path: "agents/support/support_agent.md"
+    capabilities: ["customer_support", "helpdesk"]
+  - id: "support_troubleshooter"
+    path: "agents/support/troubleshooter_agent.md"
+    capabilities: ["technical_troubleshooting", "debugging"]
+  - id: "support_feedback"
+    path: "agents/support/feedback_agent.md"
+    capabilities: ["feedback_analytics", "rice_prioritization"]
+
+  - id: "data_etl"
+    path: "agents/data/etl_agent.md"
+    capabilities: ["etl_pipelines", "data_cleaning"]
+  - id: "data_warehouse"
+    path: "agents/data/warehouse_agent.md"
+    capabilities: ["data_warehouse", "db_schemas"]
+  - id: "data_bi"
+    path: "agents/data/bi_agent.md"
+    capabilities: ["bi_dashboards", "sql_reporting"]
+
+  - id: "hr_recruiter"
+    path: "agents/hr/recruiter_agent.md"
+    capabilities: ["talent_scouting", "resume_screening"]
+  - id: "hr_onboarding"
+    path: "agents/hr/onboarding_agent.md"
+    capabilities: ["employee_onboarding", "technical_enablement"]
+
+  - id: "integration_connector"
+    path: "agents/integration/connector_agent.md"
+    capabilities: ["api_connector", "sdk_wrapping"]
+  - id: "integration_webhook"
+    path: "agents/integration/webhook_agent.md"
+    capabilities: ["webhook_ingestion", "idempotent_queues"]
+
+  - id: "pm_agile_scrum"
+    path: "agents/pm_agile/scrum_agent.md"
+    capabilities: ["scrum_master", "sprint_planning"]
+  - id: "pm_agile_release"
+    path: "agents/pm_agile/release_agent.md"
+    capabilities: ["release_coordinator", "deployment_manifests"]

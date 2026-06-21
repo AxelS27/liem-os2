@@ -1,0 +1,46 @@
+# LIEM OS - Core Runtime Interfaces
+# Defines structural contracts for execution components.
+
+interfaces:
+  executor:
+    methods:
+      - name: "run"
+        inputs: ["work_unit"]
+        outputs: ["artifact_ref"]
+      - name: "cancel"
+        inputs: ["execution_id"]
+        outputs: ["status"]
+      - name: "checkpoint"
+        inputs: ["state_snapshot"]
+        outputs: ["checkpoint_id"]
+
+  provider:
+    methods:
+      - name: "execute"
+        inputs: ["payload"]
+        outputs: ["raw_result"]
+      - name: "validate"
+        inputs: ["schema_ref", "payload"]
+        outputs: ["is_valid"]
+
+  vram_manager:
+    methods:
+      - name: "load_model"
+        inputs: ["model_name", "device"]
+        outputs: ["status"]
+      - name: "unload_model"
+        inputs: ["model_name"]
+        outputs: ["status"]
+      - name: "get_vram_usage"
+        inputs: []
+        outputs: ["bytes_used", "bytes_total"]
+
+  event_bus:
+    methods:
+      - name: "publish"
+        inputs: ["channel", "event"]
+        outputs: ["status"]
+      - name: "subscribe"
+        inputs: ["channel", "callback"]
+        outputs: ["subscription_id"]
+

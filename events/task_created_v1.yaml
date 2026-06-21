@@ -1,0 +1,6 @@
+event: "TASK_CREATED"
+version: 1.0
+payload:
+  task_id: "uuid"
+  capability: "target_capability"
+  status: "pending"

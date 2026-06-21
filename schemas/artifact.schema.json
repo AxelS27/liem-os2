@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LiemArtifact",
+  "type": "object",
+  "properties": {
+    "artifact_id": { "type": "string" },
+    "version": { "type": "string" },
+    "producer": { "type": "string" },
+    "checksum": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "depends_on": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "size": { "type": "integer" },
+    "ttl": { "type": "integer" },
+    "lineage": {
+      "type": "object",
+      "properties": {
+        "created_by": { "type": "string" },
+        "derived_from": { "type": "array", "items": { "type": "string" } },
+        "execution_id": { "type": "string" }
+      },
+      "required": ["created_by", "derived_from", "execution_id"]
+    }
+  },
+  "required": ["artifact_id", "version", "producer", "checksum", "created_at", "depends_on", "size", "lineage"]
+}

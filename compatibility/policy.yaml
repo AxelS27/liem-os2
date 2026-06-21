@@ -1,0 +1,10 @@
+# LIEM OS - Version Compatibility Protocols
+# Ensures safe upgrades without breaking pipeline dependencies.
+
+compatibility_rules:
+  events: "BACKWARD"      # Events must be backward compatible
+  schemas: "BACKWARD"     # JSON schemas must support older fields
+  artifacts: "FORWARD"    # Artifact readers must tolerate newer formats
+  contract_versions:
+    supported: ["1.0", "1.1"]
+    deprecated: ["0.9"]

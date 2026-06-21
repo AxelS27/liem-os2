@@ -1,0 +1,18 @@
+# LIEM OS - Sandbox Access Policy
+# Defines default execution timeouts and allowed folders per agent.
+
+default_timeout_seconds: 30
+
+permissions:
+  - agent: "agents/swe/backend_agent.md"
+    allowed_tools: ["read_file", "write_file", "run_command"]
+    restricted_paths:
+      - "/etc/"
+      - "/var/run/"
+      - "C:/Windows/"
+  
+  - agent: "agents/swe/devops_agent.md"
+    allowed_tools: ["read_file", "write_file", "run_command"]
+    restricted_paths:
+      - "/"
+      - "C:/"

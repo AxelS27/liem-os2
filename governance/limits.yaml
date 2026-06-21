@@ -1,0 +1,13 @@
+# LIEM OS - Resource limits config
+limits:
+  max_parallel_tasks: 4
+  max_session_cost_usd: 5.00
+  max_tokens_per_prompt: 120000
+  alert_channels:
+    - "#liem-alerts"
+
+scheduler_budget:
+  cpu_slots: 8
+  token_slots: 500000
+  cost_slots_usd: 10.00
+  parallel_limit: 6

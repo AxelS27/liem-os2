@@ -1,0 +1,11 @@
+# LIEM OS - Artifact Manifest Template
+# Tracks artifact details, version control, integrity, and dependency lineage.
+
+artifact_id: "artifact_uuid"
+version: "v1.0"
+producer: "agent_id"
+checksum: "sha256_hash_value"
+created_at: "ISO-8601-Timestamp"
+depends_on: []
+size: 0
+ttl: 0

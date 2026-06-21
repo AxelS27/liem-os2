@@ -1,0 +1,93 @@
+# LIEM OS - Agent Capabilities Registry
+# Maps task capabilities to their corresponding agent skill definitions.
+
+capabilities:
+  # Business Domain
+  - capability: "competitor_research"
+    agent: "agents/business/competitor_agent.md"
+  - capability: "financial_modeling"
+    agent: "agents/business/finance_agent.md"
+  - capability: "legal_compliance"
+    agent: "agents/business/legal_agent.md"
+  - capability: "business_analysis"
+    agent: "agents/business/analyst_agent.md"
+
+  # Creative Domain
+  - capability: "copywriting"
+    agent: "agents/creative/writer_agent.md"
+  - capability: "seo_optimization"
+    agent: "agents/creative/seo_agent.md"
+  - capability: "growth_marketing"
+    agent: "agents/creative/growth_agent.md"
+
+  # SWE Domain
+  - capability: "product_management"
+    agent: "agents/swe/pm_agent.md"
+  - capability: "system_design"
+    agent: "agents/swe/architect_agent.md"
+  - capability: "frontend_dev"
+    agent: "agents/swe/frontend_agent.md"
+  - capability: "backend_dev"
+    agent: "agents/swe/backend_agent.md"
+  - capability: "qa_testing"
+    agent: "agents/swe/qa_agent.md"
+  - capability: "devops_automation"
+    agent: "agents/swe/devops_agent.md"
+  - capability: "code_review"
+    agent: "agents/swe/reviewer_agent.md"
+  - capability: "database_admin"
+    agent: "agents/swe/dba_agent.md"
+  - capability: "site_reliability"
+    agent: "agents/swe/sre_agent.md"
+  - capability: "ai_ml_engineering"
+    agent: "agents/swe/ml_agent.md"
+
+  # Research Domain
+  - capability: "web_harvesting"
+    agent: "agents/research/search_agent.md"
+  - capability: "information_synthesis"
+    agent: "agents/research/synthesis_agent.md"
+  - capability: "data_analytics"
+    agent: "agents/research/analyst_agent.md"
+
+  # Security Domain
+  - capability: "code_sast_scan"
+    agent: "agents/security/sast_agent.md"
+  - capability: "threat_modeling"
+    agent: "agents/security/threat_agent.md"
+
+  # Support Domain
+  - capability: "support_triage"
+    agent: "agents/support/triage_agent.md"
+  - capability: "customer_support"
+    agent: "agents/support/support_agent.md"
+  - capability: "technical_troubleshooting"
+    agent: "agents/support/troubleshooter_agent.md"
+  - capability: "feedback_analytics"
+    agent: "agents/support/feedback_agent.md"
+
+  # Data Domain
+  - capability: "etl_pipelines"
+    agent: "agents/data/etl_agent.md"
+  - capability: "data_warehouse"
+    agent: "agents/data/warehouse_agent.md"
+  - capability: "bi_dashboards"
+    agent: "agents/data/bi_agent.md"
+
+  # HR Domain
+  - capability: "talent_scouting"
+    agent: "agents/hr/recruiter_agent.md"
+  - capability: "employee_onboarding"
+    agent: "agents/hr/onboarding_agent.md"
+
+  # Integration Domain
+  - capability: "api_connector"
+    agent: "agents/integration/connector_agent.md"
+  - capability: "webhook_ingestion"
+    agent: "agents/integration/webhook_agent.md"
+
+  # PM Agile Domain
+  - capability: "scrum_master"
+    agent: "agents/pm_agile/scrum_agent.md"
+  - capability: "release_coordinator"
+    agent: "agents/pm_agile/release_agent.md"

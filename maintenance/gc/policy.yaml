@@ -1,0 +1,15 @@
+# LIEM OS - Garbage Collection & Clean-up Policies
+# Limits memory footprint and deletes expired/unused system artifacts.
+
+gc_policies:
+  artifacts:
+    ttl_days: 30
+    action: "ARCHIVE" # ARCHIVE / DELETE
+  
+  snapshots:
+    ttl_days: 7
+    action: "DELETE"
+  
+  logs:
+    ttl_days: 14
+    action: "DELETE"
