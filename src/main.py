@@ -179,5 +179,89 @@ async def run_liem_pipeline():
     await kernel.shutdown()
     logger.info("=== LIEM ENGINE EXECUTION COMPLETE ===")
 
+def cli_entrypoint():
+    import sys
+    import shutil
+    import urllib.request
+    import zipfile
+    import io
+
+    if len(sys.argv) < 3 or sys.argv[1] != "init":
+        print("Usage: liem-os init <project_name>")
+        sys.exit(1)
+
+    project_name = sys.argv[2]
+    if os.path.exists(project_name):
+        print(f"Error: Folder '{project_name}' already exists.")
+        sys.exit(1)
+
+    os.makedirs(project_name)
+    print(f"Initializing new LIEM OS project: {project_name}...")
+
+    # Folders to copy
+    folders = ["kernel", "agents", "schemas", "registry", "sandbox"]
+
+    # Try copying from local installation source
+    base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    copied_locally = True
+    for f in folders:
+        src_path = os.path.join(base_path, f)
+        if not os.path.exists(src_path):
+            copied_locally = False
+            break
+
+    if copied_locally:
+        for f in folders:
+            src_path = os.path.join(base_path, f)
+            dest_path = os.path.join(project_name, f)
+            shutil.copytree(src_path, dest_path)
+        print("Successfully initialized templates from local package source.")
+    else:
+        # Fallback: Download from GitHub repository
+        print("Local templates not found. Downloading from GitHub...")
+        url = "https://github.com/AxelS27/liem-os2/archive/refs/heads/main.zip"
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response:
+                zip_data = response.read()
+            
+            with zipfile.ZipFile(io.BytesIO(zip_data)) as zip_ref:
+                for member in zip_ref.namelist():
+                    parts = member.split('/')
+                    if len(parts) > 1 and parts[1] in folders:
+                        relative_path = '/'.join(parts[1:])
+                        if relative_path.strip():
+                            dest_path = os.path.join(project_name, relative_path)
+                            if member.endswith('/'):
+                                os.makedirs(dest_path, exist_ok=True)
+                            else:
+                                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                                with open(dest_path, "wb") as out_f:
+                                    out_f.write(zip_ref.read(member))
+            print("Successfully initialized templates from GitHub repository.")
+        except Exception as e:
+            print(f"Error downloading templates from GitHub: {e}")
+            sys.exit(1)
+
+    # Copy src/ folder to project_name/src/ to provide the runtime engine locally!
+    src_dir = os.path.join(base_path, "src")
+    if os.path.exists(src_dir):
+        shutil.copytree(src_dir, os.path.join(project_name, "src"))
+        print("Successfully copied runtime engine source.")
+    else:
+        # If running from local source tree where main.py is inside src/
+        # base_path itself is the root, and we copy from it
+        src_local = os.path.dirname(os.path.abspath(__file__))
+        if os.path.exists(src_local) and os.path.basename(src_local) == "src":
+            shutil.copytree(src_local, os.path.join(project_name, "src"))
+            print("Successfully copied runtime engine source.")
+        else:
+            print("Warning: Local source directory not found. Please verify the installation.")
+
+    print(f"\nProject '{project_name}' successfully initialized!")
+    print(f"To run the engine:")
+    print(f"  cd {project_name}")
+    print(f"  python src/main.py")
+
 if __name__ == "__main__":
     asyncio.run(run_liem_pipeline())

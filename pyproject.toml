@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "liem-os"
+version = "0.6.0"
+description = "LIEM OS: Enterprise Multi-Agent Orchestrator"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.scripts]
+liem-os = "main:cli_entrypoint"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = ["main"]
+packages = ["storage", "kernel", "agents"]
