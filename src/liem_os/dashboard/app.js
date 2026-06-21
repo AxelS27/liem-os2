@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initial fetch and start interval
     fetchStatus();
     setInterval(fetchStatus, API_INTERVAL);
+    loadRosterAndSkills();
 });
 
 async function fetchStatus() {
@@ -75,6 +76,7 @@ function updateAgentList(loadedModels, agentContexts) {
 
         const li = document.createElement("li");
         li.className = "agent-item";
+        li.setAttribute("data-tooltip", `Model VRAM: ${agent.size} GB. Max Context: ${(agent.max_context/1000).toFixed(0)}k tokens.`);
         li.innerHTML = `
             <div class="agent-info">
                 <div class="agent-name-row">
@@ -98,6 +100,7 @@ function updateAgentList(loadedModels, agentContexts) {
 }
 
 function updateMCPList(servers) {
+    // Update sidebar list
     const mcpContainer = document.getElementById("mcp-list");
     mcpContainer.innerHTML = "";
     
@@ -110,6 +113,81 @@ function updateMCPList(servers) {
         `;
         mcpContainer.appendChild(li);
     });
+    
+    // Update main MCP grid tab if visible
+    const gridContainer = document.getElementById("mcp-grid-container");
+    if (!gridContainer) return;
+    gridContainer.innerHTML = "";
+    
+    servers.forEach(server => {
+        const card = document.createElement("div");
+        card.className = "registry-card";
+        card.onclick = () => showMCPDetails(server);
+        
+        let toolsCount = 0;
+        if (server.name === "filesystem") {
+            toolsCount = 4;
+        } else if (server.name === "github") {
+            toolsCount = 3;
+        } else if (server.name === "web-search") {
+            toolsCount = 1;
+        }
+        
+        card.innerHTML = `
+            <div class="registry-card-header">
+                <span class="registry-card-title">${server.name.toUpperCase()}</span>
+                <span class="registry-card-badge connected">${server.status}</span>
+            </div>
+            <div class="registry-card-desc">Model Context Protocol server providing local filesystem tools, API queries, or web capabilities.</div>
+            <div class="registry-card-footer">
+                <span><i class="fa-solid fa-screwdriver-wrench"></i> ${toolsCount} tools exposed</span>
+            </div>
+        `;
+        gridContainer.appendChild(card);
+    });
+}
+
+function showMCPDetails(server) {
+    let toolsList = [];
+    if (server.name === "filesystem") {
+        toolsList = [
+            { name: "read_file", desc: "Reads file content from the local workspace." },
+            { name: "write_file", desc: "Creates or modifies files inside sandbox paths." },
+            { name: "list_dir", desc: "Lists all children inside a target directory." },
+            { name: "grep_search", desc: "Performs ripgrep pattern queries inside project files." }
+        ];
+    } else if (server.name === "github") {
+        toolsList = [
+            { name: "get_pr", desc: "Queries open Pull Requests from the target repository." },
+            { name: "create_issue", desc: "Submits bugs or tasks directly to github issues." },
+            { name: "push_code", desc: "Pushes local commits to the remote main branch." }
+        ];
+    } else if (server.name === "web-search") {
+        toolsList = [
+            { name: "search_web", desc: "Performs web queries for real-time document search." }
+        ];
+    }
+    
+    let toolsHtml = toolsList.map(t => `
+        <li style="margin-bottom: 10px;">
+            <strong><code>${t.name}</code></strong>
+            <p style="margin: 2px 0 0 0; color: var(--text-secondary); font-size: 12px;">${t.desc}</p>
+        </li>
+    `).join("");
+    
+    const html = `
+        <div class="modal-section">
+            <div class="modal-section-title">Protocol Server</div>
+            <p>${server.name} (${server.status})</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Exposed Client Tools</div>
+            <ul class="modal-list" style="margin-top: 8px;">
+                ${toolsHtml}
+            </ul>
+        </div>
+    `;
+    showModal(`${server.name.toUpperCase()} Server`, "fa-server", html);
 }
 
 function updateConsoleLogs(logs) {
@@ -121,10 +199,66 @@ function updateConsoleLogs(logs) {
     // Append new lines
     const newLines = logs.slice(activeLogs.length);
     newLines.forEach(line => {
-        const div = document.createElement("div");
-        div.className = "log-line";
-        div.innerHTML = parseLogFormatting(line);
-        logContainer.appendChild(div);
+        const lineTrim = line.trim();
+        if (!lineTrim) return;
+
+        let el;
+        if (lineTrim.startsWith("[User]")) {
+            // User Chat Bubble (Right Aligned)
+            el = document.createElement("div");
+            el.className = "bubble-user";
+            el.innerText = lineTrim.substring(6).trim();
+        } else if (lineTrim.startsWith("[Axel]")) {
+            // Copilot Chat Bubble (Left Aligned)
+            el = document.createElement("div");
+            el.className = "bubble-copilot";
+            el.innerHTML = `
+                <div class="avatar-container">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="bubble-content">
+                    <strong>Axel</strong>
+                    <p>${lineTrim.substring(6).trim()}</p>
+                </div>
+            `;
+        } else if (lineTrim.startsWith("[HITL]")) {
+            // HITL Warning Chat Bubble (Left Aligned)
+            el = document.createElement("div");
+            el.className = "bubble-copilot";
+            el.innerHTML = `
+                <div class="avatar-container" style="background-color: rgba(231,76,60,0.1); border-color: rgba(231,76,60,0.3); color: var(--error-color);">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="bubble-content">
+                    <strong>HITL System</strong>
+                    <p>${lineTrim.substring(6).trim()}</p>
+                </div>
+            `;
+        } else {
+            // System Log Line (Terminal Card Layout)
+            el = document.createElement("div");
+            
+            // Determine status color class
+            let statusClass = "status-log";
+            
+            if (lineTrim.includes("completed") || lineTrim.includes("PASSED") || lineTrim.includes("success") || lineTrim.includes("SUCCESSFUL")) {
+                statusClass = "completed-status";
+            } else if (lineTrim.includes("failed") || lineTrim.includes("FAILED") || lineTrim.includes("error") || lineTrim.includes("Error")) {
+                statusClass = "failed-status";
+            } else if (lineTrim.includes("running") || lineTrim.includes("Executing") || lineTrim.includes("loading") || lineTrim.includes("Requesting")) {
+                statusClass = "running-status";
+            } else if (lineTrim.includes("WARNING") || lineTrim.includes("warning") || lineTrim.includes("Escalation") || lineTrim.includes("breached")) {
+                statusClass = "warning-status";
+            }
+
+            el.className = `log-system ${statusClass}`;
+            el.innerHTML = `
+                <span class="status-dot"></span>
+                <span class="log-text">${lineTrim}</span>
+            `;
+        }
+
+        logContainer.appendChild(el);
     });
 
     activeLogs = [...logs];
@@ -134,25 +268,147 @@ function updateConsoleLogs(logs) {
     consoleBody.scrollTop = consoleBody.scrollHeight;
 }
 
-function parseLogFormatting(line) {
-    // Style prefixes like [Axel], [VRAM], [User]
-    const patterns = [
-        { regex: /^(\[User\])(.*)$/, class: "prefix-user" },
-        { regex: /^(\[Axel\])(.*)$/, class: "prefix-axel" },
-        { regex: /^(\[Planner\])(.*)$/, class: "prefix-planner" },
-        { regex: /^(\[VRAM\])(.*)$/, class: "prefix-vram" },
-        { regex: /^(\[Scheduler\])(.*)$/, class: "prefix-scheduler" },
-        { regex: /^(\[Validator\])(.*)$/, class: "prefix-validator" },
-        { regex: /^(\[Recovery\])(.*)$/, class: "prefix-recovery" }
-    ];
+// Tab Switching
+function switchTab(tabId) {
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+    
+    const btn = document.getElementById(`btn-${tabId}`);
+    if (btn) btn.classList.add("active");
+    
+    const content = document.getElementById(tabId);
+    if (content) content.classList.add("active");
+}
 
-    for (const p of patterns) {
-        const match = line.match(p.regex);
-        if (match) {
-            return `<strong class="${p.class}">${match[1]}</strong>${match[2]}`;
+// Details Modal
+function showModal(title, iconClass, bodyHtml) {
+    document.getElementById("modal-title").innerText = title;
+    document.getElementById("modal-icon").className = `fa-solid ${iconClass}`;
+    document.getElementById("modal-body").innerHTML = bodyHtml;
+    document.getElementById("details-modal").classList.add("active");
+}
+
+function closeModal() {
+    document.getElementById("details-modal").classList.remove("active");
+}
+
+// Roster & Skills Loader
+async function loadRosterAndSkills() {
+    try {
+        const agentsResponse = await fetch("/api/agents");
+        if (agentsResponse.ok) {
+            const agents = await agentsResponse.json();
+            renderAgentsRoster(agents);
         }
+        
+        const skillsResponse = await fetch("/api/skills");
+        if (skillsResponse.ok) {
+            const skills = await skillsResponse.json();
+            renderSkillsRegistry(skills);
+        }
+    } catch (e) {
+        console.error("Error loading roster and skills:", e);
     }
-    return line;
+}
+
+function renderAgentsRoster(agents) {
+    const container = document.getElementById("agents-grid-container");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    agents.forEach(agent => {
+        const card = document.createElement("div");
+        card.className = "registry-card";
+        card.onclick = () => showAgentDetails(agent);
+        card.innerHTML = `
+            <div class="registry-card-header">
+                <span class="registry-card-title">${agent.name}</span>
+                <span class="registry-card-badge ${agent.domain === 'Control Plane' ? 'control' : 'data'}">${agent.domain}</span>
+            </div>
+            <div class="registry-card-desc">${agent.desc}</div>
+            <div class="registry-card-footer">
+                <span><i class="fa-solid fa-microchip"></i> ${agent.vram_gb} GB VRAM</span>
+                <span><i class="fa-solid fa-user-gear"></i> ${agent.role}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function showAgentDetails(agent) {
+    const html = `
+        <div class="modal-section">
+            <div class="modal-section-title">Agent Name</div>
+            <p>${agent.name}</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Role / Subsystem</div>
+            <p>${agent.role}</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Execution Plane</div>
+            <p>${agent.domain}</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">VRAM Footprint</div>
+            <p>${agent.vram_gb} GB VRAM (Scale-to-Zero offload active)</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Functional Description</div>
+            <p>${agent.desc}</p>
+        </div>
+    `;
+    showModal(agent.name, "fa-user-tie", html);
+}
+
+function renderSkillsRegistry(skills) {
+    const container = document.getElementById("skills-grid-container");
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (skills.length === 0) {
+        container.innerHTML = "<p style='color: var(--text-secondary); padding: 10px;'>No declarative Markdown skills found in the local /agents directory.</p>";
+        return;
+    }
+    
+    skills.forEach(skill => {
+        const card = document.createElement("div");
+        card.className = "registry-card";
+        card.onclick = () => showSkillDetails(skill);
+        card.innerHTML = `
+            <div class="registry-card-header">
+                <span class="registry-card-title">${skill.name}</span>
+                <span class="registry-card-badge control">${skill.domain}</span>
+            </div>
+            <div class="registry-card-desc">${skill.description}</div>
+            <div class="registry-card-footer">
+                <span><i class="fa-regular fa-file-code"></i> agents/${skill.file}</span>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function showSkillDetails(skill) {
+    const html = `
+        <div class="modal-section">
+            <div class="modal-section-title">Skill Name</div>
+            <p>${skill.name}</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Domain Scope</div>
+            <p>${skill.domain}</p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">Source Path</div>
+            <p><code>agents/${skill.file}</code></p>
+        </div>
+        <div class="modal-section">
+            <div class="modal-section-title">System Role Focus</div>
+            <p>${skill.description}</p>
+        </div>
+    `;
+    showModal(skill.name, "fa-book-open", html);
 }
 
 async function checkHITLStatus() {
@@ -161,14 +417,12 @@ async function checkHITLStatus() {
         if (!response.ok) return;
 
         const tasks = await response.json();
-        // Look for any active task in 'failed' status representing the loop failure
         const hitlTask = tasks.find(t => t.status === "failed" && t.task_id === "T-999");
         
         const card = document.getElementById("hitl-card");
         if (hitlTask && !isHITLShowing) {
             card.classList.remove("hidden");
             isHITLShowing = true;
-            // Scroll to the bottom to focus on action
             const consoleBody = document.getElementById("console-body");
             consoleBody.scrollTop = consoleBody.scrollHeight;
         } else if (!hitlTask && isHITLShowing) {
@@ -183,7 +437,7 @@ async function checkHITLStatus() {
 async function sendPrompt(event) {
     event.preventDefault();
     const input = document.getElementById("prompt-input");
-    const prompt = input.value.strip ? input.value.strip() : input.value;
+    const prompt = input.value ? input.value.trim() : "";
     if (!prompt) return;
 
     input.value = "";

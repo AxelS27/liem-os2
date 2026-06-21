@@ -2,6 +2,8 @@ import os
 import sys
 import logging
 import asyncio
+import re
+import urllib.request
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -182,6 +184,88 @@ async def get_tasks():
     # Return all tasks across all executions
     return db.get_active_tasks("exec-100") + db.get_active_tasks("exec-200")
 
+def get_gemini_reply(prompt: str) -> str:
+    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
+        return None
+        
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    
+    # System instruction context for Axel Copilot
+    system_instruction = (
+        "You are Axel, the friendly and highly intelligent User Copilot for LIEM OS (a declarative multi-agent orchestrator). "
+        "Your role is to guide the user in setting up projects, writing code, running agent simulations, and testing. "
+        "Respond in a concise, developer-friendly, and engaging tone. Keep your responses short (under 3-4 sentences if possible) "
+        "and mention that the user can ask you to run simulations by describing coding tasks (e.g. 'Build a Stripe payment api'). "
+        "Answer in the user's language (if they greet you in Indonesian, respond in Indonesian)."
+    )
+    
+    payload = {
+        "contents": [
+            {
+                "parts": [
+                    {"text": f"System Context: {system_instruction}\n\nUser: {prompt}"}
+                ]
+            }
+        ]
+    }
+    
+    import json
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url,
+            data=data,
+            headers={"Content-Type": "application/json"},
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=5) as response:
+            res_data = response.read().decode("utf-8")
+            res_json = json.loads(res_data)
+            reply = res_json["candidates"][0]["content"]["parts"][0]["text"]
+            return reply.strip()
+    except Exception as e:
+        return f"(Gagal menghubungkan ke Gemini API: {e}. Periksa validitas API Key Anda.)"
+
+def get_declarative_skills():
+    liem_home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    agents_dir = os.path.join(liem_home, "agents")
+    skills = []
+    if os.path.exists(agents_dir):
+        for root, dirs, files in os.walk(agents_dir):
+            for file in files:
+                if file.endswith(".md"):
+                    full_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(full_path, agents_dir).replace("\\", "/")
+                    
+                    # Default values
+                    name = file.replace(".md", "").replace("_", " ").title()
+                    description = "Declarative agent skill description."
+                    domain = os.path.basename(root).upper()
+                    
+                    try:
+                        with open(full_path, "r", encoding="utf-8") as f:
+                            content = f.read()
+                            frontmatter_match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+                            if frontmatter_match:
+                                fm = frontmatter_match.group(1)
+                                name_match = re.search(r"name:\s*\"(.*?)\"", fm) or re.search(r"name:\s*(.*?)\n", fm)
+                                desc_match = re.search(r"description:\s*\"(.*?)\"", fm) or re.search(r"description:\s*(.*?)\n", fm)
+                                if name_match:
+                                    name = name_match.group(1).strip()
+                                if desc_match:
+                                    description = desc_match.group(1).strip()
+                    except Exception:
+                        pass
+                        
+                    skills.append({
+                        "name": name,
+                        "file": rel_path,
+                        "domain": domain,
+                        "description": description
+                    })
+    return skills
+
 @app.post("/api/prompt")
 async def trigger_prompt(req: PromptRequest):
     logger = logging.getLogger("LiemServer")
@@ -197,14 +281,23 @@ async def trigger_prompt(req: PromptRequest):
             vram_manager.load_model("axel")
             await asyncio.sleep(0.8)
             
-            if "siapa" in prompt_lower or "who" in prompt_lower:
-                reply = "[Axel] Saya adalah Axel, User Copilot pendamping kamu di LIEM OS. Tugas saya membantu mendelegasikan tugas ke agent spesialis (seperti Backend Agent, QA Agent, dan DevOps Agent) serta memonitor perkembangannya."
-            elif "apa kabar" in prompt_lower or "how are you" in prompt_lower:
-                reply = "[Axel] Saya sangat baik! Seluruh sistem LIEM OS berjalan optimal. VRAM aman, MCP servers terkoneksi, dan saya siap membantu pengerjaan project kamu."
-            elif "help" in prompt_lower or "tolong" in prompt_lower:
-                reply = "[Axel] Kamu bisa memerintahkan saya untuk membuat project baru, seperti:\n- 'Buat payment endpoint dengan Stripe'\n- 'Bikin API kalkulator pajak'\n- 'Tolong audit keamanan kode'"
+            # Query Gemini API if key is set, else use rules fallback
+            gemini_reply = get_gemini_reply(req.prompt)
+            if gemini_reply:
+                reply = f"[Axel] {gemini_reply}"
             else:
-                reply = "[Axel] Halo! Ada yang bisa saya bantu hari ini? Tulis perintah coding yang kamu inginkan, dan saya akan koordinasikan agent-agent spesialis untuk mengerjakannya."
+                if "siapa" in prompt_lower or "who" in prompt_lower:
+                    reply = "[Axel] Saya adalah Axel, User Copilot pendamping kamu di LIEM OS. Tugas saya membantu mendelegasikan tugas ke agent spesialis (seperti Backend Agent, QA Agent, dan DevOps Agent) serta memonitor perkembangannya."
+                elif "apa kabar" in prompt_lower or "how are you" in prompt_lower:
+                    reply = "[Axel] Saya sangat baik! Seluruh sistem LIEM OS berjalan optimal. VRAM aman, MCP servers terkoneksi, dan saya siap membantu pengerjaan project kamu."
+                elif "help" in prompt_lower or "tolong" in prompt_lower:
+                    reply = "[Axel] Kamu bisa memerintahkan saya untuk membuat project baru, seperti:\n- 'Buat payment endpoint dengan Stripe'\n- 'Bikin API kalkulator pajak'\n- 'Tolong audit keamanan kode'"
+                else:
+                    reply = (
+                        "[Axel] Halo! Saya mendeteksi percakapan biasa. Untuk mengobrol bebas dengan kecerdasan AI sesungguhnya, "
+                        "silakan atur environment variable **`GEMINI_API_KEY`** dengan API key kamu. "
+                        "Saat ini, kamu bisa menyuruh saya menjalankan simulasi coding dengan mengetik perintah tugas (misalnya: 'buat billing endpoint')."
+                    )
                 
             telemetry_data["logs"].append(reply)
             vram_manager.unload_model("axel")
@@ -225,6 +318,24 @@ async def hitl_action(req: HITLAction):
     # Resume task or clear snapshot
     db.clear_snapshot(req.task_id)
     return {"status": "success", "message": f"Task {req.task_id} has been resumed with action: {req.action}"}
+
+@app.get("/api/agents")
+async def get_agents():
+    return [
+        {"name": "User Copilot (Axel)", "role": "Copilot & Coordinator", "vram_gb": 1.5, "domain": "Control Plane", "desc": "Handles conversation, decomposing requests, and coordinating agents."},
+        {"name": "Core Planner", "role": "Planning Decomposer", "vram_gb": 3.0, "domain": "Control Plane", "desc": "Generates acyclic plan sequences and task dependency graphs."},
+        {"name": "Core Router", "role": "Deterministic Resolver", "vram_gb": 1.0, "domain": "Control Plane", "desc": "Maps capabilities to agent skills deterministically using registry maps."},
+        {"name": "Core Scheduler", "role": "Lifecycle Coordinator", "vram_gb": 1.0, "domain": "Control Plane", "desc": "Manages execution loops, temperature decays, and loop-breaking thresholds."},
+        {"name": "Core Validator", "role": "JSON Schema Asserter", "vram_gb": 1.0, "domain": "Control Plane", "desc": "Asserts payload validity against JSON schemas and manages HITL gates."},
+        {"name": "Backend Developer", "role": "Code Implementation", "vram_gb": 4.5, "domain": "Data Plane", "desc": "Implements backend code modules, database endpoints, and core logic."},
+        {"name": "QA Tester", "role": "Testing & QA validation", "vram_gb": 2.0, "domain": "Data Plane", "desc": "Executes testing suites, validates code blocks, and asserts convergence."},
+        {"name": "DevOps Engineer", "role": "CI/CD & Cloud Provisioning", "vram_gb": 2.0, "domain": "Data Plane", "desc": "Deploys code, builds containers, and manages cloud infrastructure."},
+        {"name": "ETL Data Engineer", "role": "Data Pipeline Architect", "vram_gb": 3.0, "domain": "Data Plane", "desc": "Builds ETL pipelines, ensures idempotency, and loads data schemas."}
+    ]
+
+@app.get("/api/skills")
+async def get_skills():
+    return get_declarative_skills()
 
 # Serve Dashboard files
 DASHBOARD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard")
