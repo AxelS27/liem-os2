@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIEM OS Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-microchip"></i>
+                    <span>LIEM DRIVE</span>
+                </div>
+                <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
+            </div>
+
+            <!-- TELEMETRY SUMMARY -->
+            <div class="section-title">TELEMETRY</div>
+            <div class="telemetry-grid">
+                <div class="telemetry-card">
+                    <span class="card-label">COST (USD)</span>
+                    <span class="card-value" id="stat-cost">$0.00</span>
+                </div>
+                <div class="telemetry-card">
+                    <span class="card-label">TOKENS</span>
+                    <span class="card-value" id="stat-tokens">0</span>
+                </div>
+                <div class="telemetry-card">
+                    <span class="card-label">LATENCY</span>
+                    <span class="card-value" id="stat-latency">0.0s</span>
+                </div>
+            </div>
+
+            <!-- AGENTS & VRAM -->
+            <div class="section-title">ACTIVE AGENTS (VRAM)</div>
+            <ul class="agent-list" id="agent-list">
+                <!-- Dynamically loaded -->
+            </ul>
+
+            <!-- MCP SERVERS -->
+            <div class="section-title">MCP SERVERS</div>
+            <ul class="mcp-list" id="mcp-list">
+                <!-- Dynamically loaded -->
+            </ul>
+
+            <!-- RUNTIME STATE -->
+            <div class="section-title">ACTIVE PLANS</div>
+            <ul class="plan-list">
+                <li class="plan-item active">
+                    <i class="fa-solid fa-diagram-project"></i>
+                    <span>exec-100 (Active Task)</span>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- MAIN CONSOLE -->
+        <main class="console-area">
+            <!-- Header Status -->
+            <header class="console-header">
+                <div class="window-controls">
+                    <span class="dot close"></span>
+                    <span class="dot minimize"></span>
+                    <span class="dot maximize"></span>
+                </div>
+                <div class="path-tab">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>~/Projects/liem-workspace</span>
+                </div>
+                <div class="system-status" id="system-status">
+                    <span class="status-indicator idle"></span>
+                    <span class="status-text">SYSTEM STANDBY</span>
+                </div>
+            </header>
+
+            <!-- Scrollable Terminal Log -->
+            <div class="console-body" id="console-body">
+                <div class="terminal-welcome">
+                    <pre>
+   __    _  ____  __  ___    ____  ____
+  / /   / |/ /  |/  |/ _ \  / __ \/ __/
+ / /__ /    / /|_/ /  __ / / /_/ /\ \  
+/____//_/|_/_/  /_/_/      \____/___/  
+v0.6.0 | Declarative Multi-Agent Orchestrator
+                    </pre>
+                    <p>Type a request below to boot the pipeline and coordinate agents.</p>
+                </div>
+                <div class="log-lines" id="log-lines">
+                    <!-- Logs go here -->
+                </div>
+
+                <!-- HITL Interactive Card (hidden by default) -->
+                <div class="hitl-container hidden" id="hitl-card">
+                    <div class="hitl-card">
+                        <div class="hitl-header">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>Human-in-the-Loop Gateway Escalation</span>
+                        </div>
+                        <div class="hitl-body">
+                            <p>Task <strong>T-999</strong> reached 5 failed validation cycles. Manual code verification required.</p>
+                            <div class="code-diff">
+                                <span class="diff-file">finance_tool.py</span>
+                                <pre><code class="language-python">
+- def calculate_tax(amount):
+-     return amount * 0.1
++ def calculate_tax(amount, rate=0.1):
++     if amount < 0:
++         raise ValueError("Amount cannot be negative")
++     return amount * rate
+                                </code></pre>
+                            </div>
+                        </div>
+                        <div class="hitl-actions">
+                            <button class="action-btn reject" onclick="submitHITL('reject')">
+                                <i class="fa-solid fa-xmark"></i> Reject & Re-plan
+                            </button>
+                            <button class="action-btn approve" onclick="submitHITL('approve')">
+                                <i class="fa-solid fa-check"></i> Approve & Resume
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Prompt Input -->
+            <footer class="console-footer">
+                <form class="prompt-form" id="prompt-form" onsubmit="sendPrompt(event)">
+                    <i class="fa-solid fa-angle-right prompt-arrow"></i>
+                    <input type="text" id="prompt-input" autocomplete="off" placeholder="Ask Axel anything, e.g., Build a tax calculation backend..." required>
+                    <button type="submit" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
