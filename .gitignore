@@ -9,6 +9,7 @@ runtime/*.db-journal
 runtime/*.db-wal
 runtime/*.db-shm
 runtime/finance_tool.py
+finance_tool.py
 
 # OS caches
 .DS_Store

@@ -26,9 +26,14 @@ logger = logging.getLogger("LiemMain")
 async def run_liem_pipeline():
     logger.info("=== INITIALIZING LIEM MULTI-AGENT ORCHESTRATOR ===")
     
-    # Paths
-    db_path = "runtime/liem.db"
-    dummy_code_path = "runtime/finance_tool.py"
+    # Resolve LIEM_HOME (the liem-os/ subdirectory root)
+    liem_home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    # Internal state store database lives inside liem-os/runtime/
+    db_path = os.path.join(liem_home, "runtime", "liem.db")
+    
+    # Project application workspace file lives in the current working directory (e.g. Ecommerce-website root)
+    dummy_code_path = "finance_tool.py"
     
     # Clean old run files
     if os.path.exists(db_path):
@@ -46,13 +51,12 @@ async def run_liem_pipeline():
     compressor = ContextCompressor()
 
     # Create dummy files simulating agent workspace
-    os.makedirs(os.path.dirname(os.path.abspath(dummy_code_path)), exist_ok=True)
     with open(dummy_code_path, "w", encoding="utf-8") as f:
         f.write('''def calculate_tax(amount):
     return amount * 0.1
 ''')
 
-    logger.info("[Main] Created dummy agent workspace file: finance_tool.py")
+    logger.info(f"[Main] Created dummy agent workspace file: {os.path.abspath(dummy_code_path)}")
 
     # Boot the system
     await kernel.boot()
