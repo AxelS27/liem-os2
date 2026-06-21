@@ -14,3 +14,15 @@ finance_tool.py
 # OS caches
 .DS_Store
 Thumbs.db
+
+# Virtual environments
+.venv/
+venv/
+
+# PyInstaller build files
+build/
+dist/
+*.spec
+
+# Python packaging metadata
+*.egg-info/

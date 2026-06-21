@@ -2,7 +2,7 @@ import sqlite3
 import json
 import os
 from typing import Dict, Any, List, Optional
-from storage.db_interface import BaseStateRepository
+from liem_os.storage.db_interface import BaseStateRepository
 
 class SQLiteStateRepository(BaseStateRepository):
     """

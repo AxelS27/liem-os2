@@ -12,13 +12,13 @@ from typing import Dict, Any, List
 # Ensure src/ is in path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from storage.sqlite_db import SQLiteStateRepository
-from kernel.event_bus import EventBus
-from kernel.vram_manager import VRAMManager
-from kernel.event_loop import KernelEventLoop
-from kernel.scheduler import CoreScheduler
-from kernel.recovery import RecoveryManager
-from agents.context import ContextCompressor
+from liem_os.storage.sqlite_db import SQLiteStateRepository
+from liem_os.kernel.event_bus import EventBus
+from liem_os.kernel.vram_manager import VRAMManager
+from liem_os.kernel.event_loop import KernelEventLoop
+from liem_os.kernel.scheduler import CoreScheduler
+from liem_os.kernel.recovery import RecoveryManager
+from liem_os.agents.context import ContextCompressor
 
 app = FastAPI(title="LIEM OS API Server")
 

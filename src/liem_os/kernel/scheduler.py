@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any
 from .event_bus import EventBus
-from storage.db_interface import BaseStateRepository
+from liem_os.storage.db_interface import BaseStateRepository
 
 logger = logging.getLogger("LiemScheduler")
 

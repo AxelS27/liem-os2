@@ -10,8 +10,24 @@ def build():
         import PyInstaller
         print("PyInstaller found. Ready to compile.")
     except ImportError:
-        print("PyInstaller not found. Installing via pip...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
+        print("PyInstaller not found. Installing via uv...")
+        import shutil
+        if shutil.which("uv"):
+            try:
+                # Use uv pip install. If not in a virtual environment, append --system.
+                in_venv = sys.prefix != sys.base_prefix
+                cmd = ["uv", "pip", "install"]
+                if not in_venv:
+                    cmd.append("--system")
+                cmd.append("pyinstaller")
+                print(f"Running: {' '.join(cmd)}")
+                subprocess.check_call(cmd)
+            except Exception as e:
+                print(f"Failed to install with uv: {e}. Falling back to pip...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
+        else:
+            print("uv not found. Falling back to pip...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
     # Build command
     # We target src/liem_os/main.py as the entry point
@@ -20,8 +36,17 @@ def build():
     # PyInstaller data files separator (semicolon for Windows, colon for Linux/macOS)
     sep = os.pathsep
     
+    # Find the correct PyInstaller executable path (e.g., in the virtual environment's Scripts/ or bin/)
+    pyinstaller_bin = "pyinstaller"
+    pyinstaller_dir = os.path.dirname(sys.executable)
+    for ext in ["", ".exe"]:
+        candidate = os.path.join(pyinstaller_dir, "pyinstaller" + ext)
+        if os.path.exists(candidate):
+            pyinstaller_bin = candidate
+            break
+            
     cmd = [
-        "pyinstaller",
+        pyinstaller_bin,
         "--onefile",
         "--name", "liem-os",
         "--add-data", f"src/liem_os/dashboard{sep}liem_os/dashboard",
