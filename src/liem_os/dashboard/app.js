@@ -391,7 +391,7 @@ function renderSkillsRegistry(skills) {
             </div>
             <div class="registry-card-desc">${skill.description}</div>
             <div class="registry-card-footer">
-                <span><i class="fa-regular fa-file-code"></i> agents/${skill.file}</span>
+                <span><i class="fa-regular fa-file-code"></i> ${skill.file}</span>
             </div>
         `;
         container.appendChild(card);

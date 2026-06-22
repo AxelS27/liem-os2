@@ -770,6 +770,8 @@ body {
     padding: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
 }
 
 .registry-card:hover {
@@ -822,6 +824,7 @@ body {
     color: var(--text-secondary);
     line-height: 1.5;
     margin-bottom: 14px;
+    flex-grow: 1;
 }
 
 .registry-card-footer {
