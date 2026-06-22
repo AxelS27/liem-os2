@@ -20,6 +20,16 @@
                 <button class="add-btn"><i class="fa-solid fa-plus"></i></button>
             </div>
 
+            <!-- ACTIVE WORKSPACE SELECTOR -->
+            <div class="section-title provider-section-title">ACTIVE PROVIDER</div>
+            <div class="provider-selector-container">
+                <select id="provider-select" onchange="changeProvider(this.value)">
+                    <option value="antigravity">Antigravity (Gemini)</option>
+                    <option value="claude">Claude Desktop (Anthropic)</option>
+                    <option value="cursor">Cursor IDE (OpenAI/Anthropic)</option>
+                </select>
+            </div>
+
             <!-- TELEMETRY SUMMARY -->
             <div class="section-title">TELEMETRY</div>
             <div class="telemetry-grid">

@@ -49,6 +49,14 @@ async function fetchStatus() {
         // Check active tasks for HITL gateway status
         checkHITLStatus();
 
+        // Sync selected provider
+        if (data.active_provider) {
+            const selectEl = document.getElementById("provider-select");
+            if (selectEl && selectEl.value !== data.active_provider) {
+                selectEl.value = data.active_provider;
+            }
+        }
+
     } catch (error) {
         console.error("Error fetching status from LIEM engine:", error);
     }
@@ -465,5 +473,22 @@ async function submitHITL(action) {
         isHITLShowing = false;
     } catch (e) {
         console.error("Error submitting HITL action:", e);
+    }
+}
+
+async function changeProvider(providerValue) {
+    try {
+        const response = await fetch("/api/provider", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ provider: providerValue })
+        });
+        if (response.ok) {
+            await fetchStatus();
+        }
+    } catch (error) {
+        console.error("Error setting active provider:", error);
     }
 }

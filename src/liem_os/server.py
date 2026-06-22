@@ -44,10 +44,42 @@ recovery = RecoveryManager(db, event_bus, kernel)
 compressor = ContextCompressor()
 
 # Global Telemetry Store
+active_provider = "antigravity"
+
+provider_telemetry = {
+    "antigravity": {
+        "total_tokens": 142850,
+        "total_cost_usd": 0.21,
+        "avg_latency_sec": 1.84,
+        "mcp_servers": [
+            {"name": "filesystem", "status": "connected"},
+            {"name": "github", "status": "connected"},
+            {"name": "web-search", "status": "connected"},
+            {"name": "context7", "status": "connected"}
+        ]
+    },
+    "claude": {
+        "total_tokens": 189120,
+        "total_cost_usd": 1.15,
+        "avg_latency_sec": 2.15,
+        "mcp_servers": [
+            {"name": "brave-search", "status": "connected"},
+            {"name": "postgres", "status": "connected"},
+            {"name": "sequentialthinking", "status": "connected"}
+        ]
+    },
+    "cursor": {
+        "total_tokens": 98450,
+        "total_cost_usd": 0.45,
+        "avg_latency_sec": 1.50,
+        "mcp_servers": [
+            {"name": "filesystem", "status": "connected"},
+            {"name": "interpreter", "status": "connected"}
+        ]
+    }
+}
+
 telemetry_data = {
-    "total_tokens": 142850,
-    "total_cost_usd": 0.21,
-    "avg_latency_sec": 1.84,
     "system_state": "idle",
     "logs": [
         "2026-06-22 06:19:00 [Kernel] System standby. Awaiting copilot commands."
@@ -65,6 +97,9 @@ telemetry_data = {
 
 class PromptRequest(BaseModel):
     prompt: str
+
+class ProviderRequest(BaseModel):
+    provider: str
 
 class HITLAction(BaseModel):
     task_id: str
@@ -162,22 +197,50 @@ async def on_task_failed(event: Dict[str, Any]):
 
 @app.get("/api/status")
 async def get_status():
+    p_data = provider_telemetry.get(active_provider, provider_telemetry["antigravity"])
+    
+    # Merge simulated loaded models based on provider
+    if active_provider == "antigravity":
+        loaded = list(vram_manager.loaded_models.keys())
+    elif active_provider == "claude":
+        # Simulate Claude model loaded states based on whether system is running
+        loaded = ["claude-3-5-sonnet"] if telemetry_data["system_state"] == "running" else []
+    else:
+        loaded = ["gpt-4o"] if telemetry_data["system_state"] == "running" else []
+        
     return {
-        "vram_used": vram_manager.get_vram_usage(),
+        "vram_used": vram_manager.get_vram_usage() if active_provider == "antigravity" else (2.4 if loaded else 0.0),
         "vram_limit": vram_manager.limit_gb,
-        "loaded_models": list(vram_manager.loaded_models.keys()),
-        "total_tokens": telemetry_data["total_tokens"],
-        "total_cost_usd": telemetry_data["total_cost_usd"],
-        "avg_latency_sec": telemetry_data["avg_latency_sec"],
+        "loaded_models": loaded,
+        "total_tokens": p_data["total_tokens"],
+        "total_cost_usd": p_data["total_cost_usd"],
+        "avg_latency_sec": p_data["avg_latency_sec"],
         "system_state": telemetry_data["system_state"],
         "logs": telemetry_data["logs"][-50:],  # Return last 50 lines
         "agent_context": telemetry_data["agent_context"],
-        "mcp_servers": [
-            {"name": "filesystem", "status": "connected"},
-            {"name": "github", "status": "connected"},
-            {"name": "web-search", "status": "connected"}
-        ]
+        "mcp_servers": p_data["mcp_servers"],
+        "active_provider": active_provider
     }
+
+@app.post("/api/provider")
+async def set_provider(req: ProviderRequest):
+    global active_provider
+    prov = req.provider.lower()
+    if prov not in ["antigravity", "claude", "cursor"]:
+        raise HTTPException(status_code=400, detail="Invalid provider")
+    
+    active_provider = prov
+    
+    # Add a system log line
+    provider_names = {
+        "antigravity": "Antigravity",
+        "claude": "Claude Desktop",
+        "cursor": "Cursor IDE"
+    }
+    name = provider_names.get(prov, prov.capitalize())
+    telemetry_data["logs"].append(f"[Kernel] Switched active provider context to: {name}.")
+    
+    return {"status": "success", "active_provider": active_provider}
 
 @app.get("/api/tasks")
 async def get_tasks():
