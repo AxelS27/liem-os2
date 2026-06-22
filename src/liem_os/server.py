@@ -4,6 +4,27 @@ import logging
 import asyncio
 import re
 import urllib.request
+
+def load_dotenv():
+    # Look for .env in current directory or project root
+    for path in [".env", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")]:
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith("#"):
+                            continue
+                        if "=" in line:
+                            key, val = line.split("=", 1)
+                            key = key.strip()
+                            val = val.strip().strip('"').strip("'")
+                            os.environ[key] = val
+                break
+            except Exception:
+                pass
+
+load_dotenv()
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
