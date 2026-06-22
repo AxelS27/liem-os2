@@ -290,43 +290,96 @@ def get_gemini_reply(prompt: str) -> str:
     except Exception as e:
         return f"(Gagal menghubungkan ke Gemini API: {e}. Periksa validitas API Key Anda.)"
 
+def parse_skill_metadata(full_path, default_name):
+    name = default_name
+    description = "Declarative agent skill description."
+    try:
+        with open(full_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            frontmatter_match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+            if frontmatter_match:
+                fm = frontmatter_match.group(1)
+                name_match = re.search(r"name:\s*\"(.*?)\"", fm) or re.search(r"name:\s*(.*?)\n", fm)
+                desc_match = re.search(r"description:\s*\"(.*?)\"", fm) or re.search(r"description:\s*(.*?)\n", fm)
+                if name_match:
+                    name = name_match.group(1).strip()
+                if desc_match:
+                    description = desc_match.group(1).strip()
+    except Exception:
+        pass
+    return name, description
+
 def get_declarative_skills():
-    liem_home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    agents_dir = os.path.join(liem_home, "agents")
     skills = []
-    if os.path.exists(agents_dir):
+    
+    # 1. Resolve local project agents directory robustly
+    cwd_agents = os.path.join(os.getcwd(), "agents")
+    parent_agents = os.path.join(os.path.dirname(os.getcwd()), "agents")
+    liem_home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    installed_agents = os.path.join(liem_home, "agents")
+    
+    agents_dir = None
+    for candidate in [cwd_agents, parent_agents, installed_agents]:
+        if os.path.exists(candidate) and os.path.isdir(candidate):
+            agents_dir = candidate
+            break
+            
+    if agents_dir:
         for root, dirs, files in os.walk(agents_dir):
             for file in files:
                 if file.endswith(".md"):
                     full_path = os.path.join(root, file)
                     rel_path = os.path.relpath(full_path, agents_dir).replace("\\", "/")
-                    
-                    # Default values
-                    name = file.replace(".md", "").replace("_", " ").title()
-                    description = "Declarative agent skill description."
+                    default_name = file.replace(".md", "").replace("_", " ").title()
                     domain = os.path.basename(root).upper()
-                    
-                    try:
-                        with open(full_path, "r", encoding="utf-8") as f:
-                            content = f.read()
-                            frontmatter_match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
-                            if frontmatter_match:
-                                fm = frontmatter_match.group(1)
-                                name_match = re.search(r"name:\s*\"(.*?)\"", fm) or re.search(r"name:\s*(.*?)\n", fm)
-                                desc_match = re.search(r"description:\s*\"(.*?)\"", fm) or re.search(r"description:\s*(.*?)\n", fm)
-                                if name_match:
-                                    name = name_match.group(1).strip()
-                                if desc_match:
-                                    description = desc_match.group(1).strip()
-                    except Exception:
-                        pass
-                        
+                    if domain == "AGENTS":
+                        domain = "LOCAL"
+                    name, description = parse_skill_metadata(full_path, default_name)
                     skills.append({
                         "name": name,
-                        "file": rel_path,
-                        "domain": domain,
+                        "file": f"agents/{rel_path}",
+                        "domain": f"LOCAL {domain}",
                         "description": description
                     })
+
+    # 2. If Antigravity, also load Global and Workspace customizations
+    if active_provider == "antigravity":
+        # Global Customizations Root
+        global_skills_dir = os.path.join(os.path.expanduser("~"), ".gemini", "config", "skills")
+        if os.path.exists(global_skills_dir) and os.path.isdir(global_skills_dir):
+            for item in os.listdir(global_skills_dir):
+                item_path = os.path.join(global_skills_dir, item)
+                if os.path.isdir(item_path):
+                    skill_md = os.path.join(item_path, "SKILL.md")
+                    if os.path.exists(skill_md):
+                        default_name = item.replace("-", " ").title()
+                        name, description = parse_skill_metadata(skill_md, default_name)
+                        skills.append({
+                            "name": name,
+                            "file": f"~/.gemini/config/skills/{item}/SKILL.md",
+                            "domain": "GLOBAL CUSTOMIZATION",
+                            "description": description
+                        })
+                        
+        # Workspace Customizations Root
+        for base in [os.getcwd(), os.path.dirname(os.getcwd())]:
+            workspace_skills_dir = os.path.join(base, ".agents", "skills")
+            if os.path.exists(workspace_skills_dir) and os.path.isdir(workspace_skills_dir):
+                for item in os.listdir(workspace_skills_dir):
+                    item_path = os.path.join(workspace_skills_dir, item)
+                    if os.path.isdir(item_path):
+                        skill_md = os.path.join(item_path, "SKILL.md")
+                        if os.path.exists(skill_md):
+                            default_name = item.replace("-", " ").title()
+                            name, description = parse_skill_metadata(skill_md, default_name)
+                            skills.append({
+                                "name": name,
+                                "file": f".agents/skills/{item}/SKILL.md",
+                                "domain": "WORKSPACE CUSTOMIZATION",
+                                "description": description
+                            })
+                break
+                
     return skills
 
 @app.post("/api/prompt")
