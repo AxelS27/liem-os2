@@ -5,6 +5,16 @@ import subprocess
 def build():
     print("=== LIEM OS STANDALONE EXE BUILDER ===")
     
+    # Auto-relaunch inside virtual environment if present
+    venv_python = os.path.join(".venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(".venv", "bin", "python")
+    if os.path.exists(venv_python):
+        abs_venv = os.path.abspath(venv_python)
+        if os.path.abspath(sys.executable) != abs_venv:
+            print(f"Relaunching build.py inside virtual environment: {venv_python}...")
+            cmd = [abs_venv] + sys.argv
+            sys.exit(subprocess.call(cmd))
+            return
+    
     # Check if pyinstaller is installed
     try:
         import PyInstaller
@@ -48,6 +58,7 @@ def build():
     cmd = [
         pyinstaller_bin,
         "--onefile",
+        "--noconsole",
         "--name", "liem-os",
         "--add-data", f"src/liem_os/dashboard{sep}liem_os/dashboard",
         entry_point

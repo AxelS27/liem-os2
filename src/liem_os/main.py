@@ -3,10 +3,60 @@ import os
 import sys
 import logging
 
+# Safety overrides for stdout/stderr when run as a windowed (--noconsole) application
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+
 def load_dotenv():
-    # Look for .env in current directory or project root
-    for path in [".env", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")]:
-        if os.path.exists(path):
+    # Gather potential search paths for .env
+    search_paths = []
+    
+    # 1. CWD and parent of CWD
+    try:
+        cwd = os.getcwd()
+        search_paths.append(os.path.join(cwd, ".env"))
+        search_paths.append(os.path.join(os.path.dirname(cwd), ".env"))
+    except Exception:
+        pass
+
+    # 2. Executable / Entry script location and its parent
+    try:
+        if sys.argv and sys.argv[0]:
+            script_dir = os.path.dirname(os.path.abspath(sys.argv[0]))
+            search_paths.append(os.path.join(script_dir, ".env"))
+            search_paths.append(os.path.join(os.path.dirname(script_dir), ".env"))
+    except Exception:
+        pass
+        
+    try:
+        exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+        search_paths.append(os.path.join(exe_dir, ".env"))
+        search_paths.append(os.path.join(os.path.dirname(exe_dir), ".env"))
+    except Exception:
+        pass
+
+    # 3. Source file relative path (three directories up from this file)
+    try:
+        file_dir = os.path.dirname(os.path.abspath(__file__))
+        search_paths.append(os.path.join(file_dir, ".env"))
+        search_paths.append(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(file_dir))), ".env"))
+    except Exception:
+        pass
+
+    # Deduplicate paths
+    seen = set()
+    unique_paths = []
+    for p in search_paths:
+        abs_p = os.path.abspath(p)
+        if abs_p not in seen:
+            seen.add(abs_p)
+            unique_paths.append(abs_p)
+
+    # Load from the first matching .env file
+    for path in unique_paths:
+        if os.path.exists(path) and os.path.isfile(path):
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     for line in f:
@@ -48,7 +98,17 @@ async def run_liem_pipeline():
     logger.info("=== INITIALIZING LIEM MULTI-AGENT ORCHESTRATOR ===")
     
     # Resolve LIEM_HOME (the liem-os/ subdirectory root)
-    liem_home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    def get_liem_home():
+        if getattr(sys, 'frozen', False):
+            exe_dir = os.path.dirname(os.path.abspath(sys.executable))
+            if os.path.basename(exe_dir).lower() == "dist":
+                return os.path.dirname(exe_dir)
+            return exe_dir
+        else:
+            file_dir = os.path.dirname(os.path.abspath(__file__))
+            return os.path.dirname(os.path.dirname(os.path.dirname(file_dir)))
+            
+    liem_home = get_liem_home()
     
     # Internal state store database lives inside liem-os/runtime/
     db_path = os.path.join(liem_home, "runtime", "liem.db")

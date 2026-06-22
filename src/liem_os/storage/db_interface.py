@@ -18,7 +18,7 @@ class BaseStateRepository(ABC):
         pass
 
     @abstractmethod
-    def save_task(self, task_id: str, execution_id: str, target_agent: str, status: str, payload: Dict[str, Any], retry_count: int, temperature: float) -> None:
+    def save_task(self, task_id: str, execution_id: str, target_agent: str, status: str, payload: Dict[str, Any], retry_count: int, temperature: float, tokens_used: int = 0, cost_usd: float = 0.0) -> None:
         """Saves a work unit/task state."""
         pass
 
@@ -28,9 +28,10 @@ class BaseStateRepository(ABC):
         pass
 
     @abstractmethod
-    def update_task_status(self, task_id: str, status: str, retry_count: int = 0, temperature: float = 0.7) -> None:
+    def update_task_status(self, task_id: str, status: str, retry_count: int = 0, temperature: float = 0.7, tokens_used: int = None, cost_usd: float = None) -> None:
         """Updates the status, retry count, and temperature of an active task."""
         pass
+
 
     @abstractmethod
     def get_active_tasks(self, execution_id: str) -> List[Dict[str, Any]]:
@@ -50,4 +51,24 @@ class BaseStateRepository(ABC):
     @abstractmethod
     def clear_snapshot(self, task_id: str) -> None:
         """Deletes a snapshot after the task is resumed."""
+        pass
+
+    @abstractmethod
+    def get_all_tasks(self) -> List[Dict[str, Any]]:
+        """Returns all tasks across all executions."""
+        pass
+
+    @abstractmethod
+    def clear_all_tasks(self) -> None:
+        """Deletes all tasks, snapshots, and executions."""
+        pass
+
+    @abstractmethod
+    def delete_task(self, task_id: str) -> None:
+        """Deletes a single task and cascade deletes its snapshots."""
+        pass
+
+    @abstractmethod
+    def get_all_executions(self) -> List[Dict[str, Any]]:
+        """Returns all executions in the database."""
         pass

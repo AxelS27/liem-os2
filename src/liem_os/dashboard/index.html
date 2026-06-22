@@ -32,20 +32,27 @@
 
             <!-- TELEMETRY SUMMARY -->
             <div class="section-title">TELEMETRY</div>
-            <div class="telemetry-grid">
-                <div class="telemetry-card">
-                    <span class="card-label">COST (USD)</span>
-                    <span class="card-value" id="stat-cost">$0.00</span>
+            
+            <div class="quota-progress-container" style="margin-bottom: 8px;">
+                <div class="quota-label">
+                    <span>5-Hour Quota</span>
+                    <span id="quota-5h-text">0% (0/0)</span>
                 </div>
-                <div class="telemetry-card">
-                    <span class="card-label">TOKENS</span>
-                    <span class="card-value" id="stat-tokens">0</span>
-                </div>
-                <div class="telemetry-card">
-                    <span class="card-label">LATENCY</span>
-                    <span class="card-value" id="stat-latency">0.0s</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="quota-5h-fill" style="width: 0%"></div>
                 </div>
             </div>
+            <div class="quota-progress-container">
+                <div class="quota-label">
+                    <span>Weekly Quota</span>
+                    <span id="quota-weekly-text">0% (0/0)</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="quota-weekly-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+
 
             <!-- AGENTS & VRAM -->
             <div class="section-title">ACTIVE AGENTS (VRAM)</div>
@@ -61,11 +68,8 @@
 
             <!-- RUNTIME STATE -->
             <div class="section-title">ACTIVE PLANS</div>
-            <ul class="plan-list">
-                <li class="plan-item active" data-tooltip="Active Plan: exec-100 (Active Task)">
-                    <i class="fa-solid fa-diagram-project"></i>
-                    <span>exec-100 (Active Task)</span>
-                </li>
+            <ul class="plan-list" id="plan-list">
+                <!-- Dynamically loaded -->
             </ul>
         </aside>
 
@@ -101,6 +105,9 @@
                 </button>
                 <button class="tab-btn" id="btn-tab-skills" onclick="switchTab('tab-skills')">
                     <i class="fa-solid fa-book-open"></i> System Skills
+                </button>
+                <button class="tab-btn" id="btn-tab-tasks" onclick="switchTab('tab-tasks')">
+                    <i class="fa-solid fa-list-check"></i> Tasks & History
                 </button>
             </div>
 
@@ -179,6 +186,67 @@ v0.6.0 | Declarative Multi-Agent Orchestrator
                     <div class="tab-header-title">Declarative Markdown Agent Skills (.md)</div>
                     <div class="skills-grid" id="skills-grid-container">
                         <!-- Dynamically populated skills list -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-tasks">
+                <div class="tab-panel-body">
+                    <div class="tab-header-row">
+                        <div class="tab-header-title">Active Tasks & Orchestration Control</div>
+                        <div class="tab-header-actions">
+                            <button class="toolbar-btn clear-btn" onclick="clearAllTasks()" title="Clear all tasks from history">
+                                <i class="fa-solid fa-trash-can"></i> Clear Tasks
+                            </button>
+                            <button class="toolbar-btn reset-btn" onclick="resetFactory()" title="Reset LIEM OS to factory defaults">
+                                <i class="fa-solid fa-rotate-left"></i> Reset to Factory
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="tasks-table-container">
+                        <table class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>Task ID</th>
+                                    <th>Execution ID</th>
+                                    <th>Target Agent</th>
+                                    <th>Status</th>
+                                    <th>Iteration</th>
+                                    <th>Temp</th>
+                                    <th>Objective</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tasks-table-body">
+                                <!-- Dynamically populated rows -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tasks History Section -->
+                    <div class="tab-header-row" style="margin-top: 30px;">
+                        <div class="tab-header-title">Task History (Completed / Inactive)</div>
+                    </div>
+                    
+                    <div class="tasks-table-container">
+                        <table class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>Task ID</th>
+                                    <th>Execution ID</th>
+                                    <th>Target Agent</th>
+                                    <th>Status</th>
+                                    <th>Iteration</th>
+                                    <th>Temp</th>
+                                    <th>Objective</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tasks-table-body">
+                                <!-- Dynamically populated rows -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

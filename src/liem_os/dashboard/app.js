@@ -1,6 +1,8 @@
 // Global State Tracking
 let activeLogs = [];
 let isHITLShowing = false;
+let lastTasksJson = "";
+let lastExecutionsJson = "";
 
 // Polling interval
 const API_INTERVAL = 1000;
@@ -19,10 +21,31 @@ async function fetchStatus() {
 
         const data = await response.json();
         
-        // Update Telemetry Widget Metrics
-        document.getElementById("stat-cost").innerText = `$${data.total_cost_usd.toFixed(2)}`;
-        document.getElementById("stat-tokens").innerText = data.total_tokens.toLocaleString();
-        document.getElementById("stat-latency").innerText = `${data.avg_latency_sec.toFixed(1)}s`;
+        // Update Quota limits and fills
+        const quota5hPercent = data.five_hour_limit > 0 ? (data.five_hour_tokens_used / data.five_hour_limit) * 100 : 0;
+        const quotaWeeklyPercent = data.weekly_limit > 0 ? (data.weekly_tokens_used / data.weekly_limit) * 100 : 0;
+        
+        const q5hText = document.getElementById("quota-5h-text");
+        const q5hFill = document.getElementById("quota-5h-fill");
+        if (q5hText && q5hFill) {
+            q5hText.innerText = `${quota5hPercent.toFixed(0)}% (${data.five_hour_tokens_used.toLocaleString()} / ${(data.five_hour_limit/1000).toFixed(0)}k)`;
+            q5hFill.style.width = `${quota5hPercent}%`;
+            if (quota5hPercent >= 85) q5hFill.style.backgroundColor = "var(--error-color)";
+            else if (quota5hPercent >= 50) q5hFill.style.backgroundColor = "var(--warning-color)";
+            else q5hFill.style.backgroundColor = "var(--accent-color)";
+        }
+        
+        const qWeeklyText = document.getElementById("quota-weekly-text");
+        const qWeeklyFill = document.getElementById("quota-weekly-fill");
+        if (qWeeklyText && qWeeklyFill) {
+            qWeeklyText.innerText = `${quotaWeeklyPercent.toFixed(0)}% (${data.weekly_tokens_used.toLocaleString()} / ${(data.weekly_limit/1000).toFixed(0)}k)`;
+            qWeeklyFill.style.width = `${quotaWeeklyPercent}%`;
+            if (quotaWeeklyPercent >= 85) qWeeklyFill.style.backgroundColor = "var(--error-color)";
+            else if (quotaWeeklyPercent >= 50) qWeeklyFill.style.backgroundColor = "var(--warning-color)";
+            else qWeeklyFill.style.backgroundColor = "var(--accent-color)";
+        }
+
+
 
         // Update System State Status indicator
         const systemStatus = document.getElementById("system-status");
@@ -48,6 +71,12 @@ async function fetchStatus() {
 
         // Check active tasks for HITL gateway status
         checkHITLStatus();
+
+        // Update Tasks Table
+        updateTasksTable();
+
+        // Update Active Plans List
+        updatePlanList();
 
         // Sync selected provider
         if (data.active_provider) {
@@ -76,19 +105,24 @@ function updateAgentList(loadedModels, agentContexts) {
         { id: "qa_agent", name: "QA Tester", size: 3.0, max_context: 64000 }
     ];
 
+    let renderedCount = 0;
+
     allAgents.forEach(agent => {
         const isActive = loadedModels.includes(agent.id);
-        const activeVram = isActive ? agent.size : 0.0;
+        if (!isActive) return; // Only display loaded/active agents in the sidebar
+
+        renderedCount++;
+        const activeVram = agent.size;
         const currentContext = agentContexts[agent.id] || 0;
         const contextPercent = Math.min(100, (currentContext / agent.max_context) * 100);
 
         const li = document.createElement("li");
-        li.className = "agent-item";
+        li.className = "agent-item active";
         li.setAttribute("data-tooltip", `${agent.name} | VRAM: ${agent.size} GB | Max Context: ${(agent.max_context/1000).toFixed(0)}k tokens`);
         li.innerHTML = `
             <div class="agent-info">
                 <div class="agent-name-row">
-                    <span class="status-dot ${isActive ? 'active' : 'inactive'}"></span>
+                    <span class="status-dot active"></span>
                     <span class="agent-name">${agent.name}</span>
                 </div>
                 <div class="context-progress-container">
@@ -105,6 +139,46 @@ function updateAgentList(loadedModels, agentContexts) {
         `;
         listContainer.appendChild(li);
     });
+
+    // Also display any active models not predefined (e.g. claude-3-5-sonnet, gpt-4o)
+    loadedModels.forEach(modelId => {
+        const isPredefined = allAgents.some(agent => agent.id === modelId);
+        if (isPredefined) return;
+
+        renderedCount++;
+        const modelName = modelId === "claude-3-5-sonnet" ? "Claude 3.5 Sonnet" : (modelId === "gpt-4o" ? "GPT-4o" : modelId);
+        const size = modelId === "claude-3-5-sonnet" ? 2.4 : (modelId === "gpt-4o" ? 2.0 : 1.5);
+        const maxContext = 200000;
+        const currentContext = agentContexts[modelId] || 0;
+        const contextPercent = Math.min(100, (currentContext / maxContext) * 100);
+
+        const li = document.createElement("li");
+        li.className = "agent-item active";
+        li.setAttribute("data-tooltip", `${modelName} | VRAM: ${size} GB | Max Context: ${(maxContext/1000).toFixed(0)}k tokens`);
+        li.innerHTML = `
+            <div class="agent-info">
+                <div class="agent-name-row">
+                    <span class="status-dot active"></span>
+                    <span class="agent-name">${modelName}</span>
+                </div>
+                <div class="context-progress-container">
+                    <div class="context-label">
+                        <span>Context: ${(currentContext/1000).toFixed(1)}k / ${(maxContext/1000).toFixed(0)}k</span>
+                        <span>${contextPercent.toFixed(0)}%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${contextPercent}%"></div>
+                    </div>
+                </div>
+            </div>
+            <span class="vram-badge">${size.toFixed(1)}GB</span>
+        `;
+        listContainer.appendChild(li);
+    });
+
+    if (renderedCount === 0) {
+        listContainer.innerHTML = `<li style="color: var(--text-secondary); font-size: 11px; padding: 4px 0; text-align: center; list-style: none;">No active agents in VRAM</li>`;
+    }
 }
 
 function updateMCPList(servers) {
@@ -490,5 +564,249 @@ async function changeProvider(providerValue) {
         }
     } catch (error) {
         console.error("Error setting active provider:", error);
+    }
+}
+
+function createTaskRow(task, isActive) {
+    const tr = document.createElement("tr");
+    
+    // Format Temp
+    const tempVal = typeof task.temperature === 'number' ? task.temperature.toFixed(2) : task.temperature;
+    
+    // Format Payload / Objective
+    const objective = task.payload && task.payload.objective ? task.payload.objective : "-";
+    
+    // Status Badge
+    const statusClass = `task-status-badge ${task.status.toLowerCase()}`;
+    const statusBadge = `<span class="${statusClass}">${task.status}</span>`;
+    
+    // Action Buttons based on status
+    let actionsHtml = "";
+    if (isActive) {
+        if (task.status === "running" || task.status === "pending") {
+            actionsHtml = `
+                <div class="task-action-btns">
+                    <button class="task-row-btn pause-btn" onclick="pauseTask('${task.task_id}')" title="Pause Task">
+                        <i class="fa-solid fa-pause"></i> Pause
+                    </button>
+                    <button class="task-row-btn cancel-btn" onclick="cancelTask('${task.task_id}')" title="Cancel Task">
+                        <i class="fa-solid fa-ban"></i> Cancel
+                    </button>
+                </div>
+            `;
+        } else if (task.status === "paused") {
+            actionsHtml = `
+                <div class="task-action-btns">
+                    <button class="task-row-btn resume-btn" onclick="resumeTask('${task.task_id}')" title="Resume Task">
+                        <i class="fa-solid fa-play"></i> Resume
+                    </button>
+                    <button class="task-row-btn cancel-btn" onclick="cancelTask('${task.task_id}')" title="Cancel Task">
+                        <i class="fa-solid fa-ban"></i> Cancel
+                    </button>
+                </div>
+            `;
+        }
+    } else {
+        // Completed, Failed, Cancelled
+        actionsHtml = `
+            <div class="task-action-btns">
+                <button class="task-row-btn cancel-btn" onclick="deleteTask('${task.task_id}')" title="Delete Task from History">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+            </div>
+        `;
+    }
+    
+    tr.innerHTML = `
+        <td style="font-family: var(--font-mono); font-weight: 600;">${task.task_id}</td>
+        <td style="font-family: var(--font-mono); color: var(--text-secondary);">${task.execution_id}</td>
+        <td><strong style="color: var(--accent-color);">${task.target_agent}</strong></td>
+        <td>${statusBadge}</td>
+        <td style="text-align: center; font-family: var(--font-mono);">${task.retry_count}</td>
+        <td style="text-align: center; font-family: var(--font-mono);">${tempVal}</td>
+        <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${objective}">${objective}</td>
+        <td>${actionsHtml}</td>
+    `;
+    return tr;
+}
+
+async function updateTasksTable() {
+    try {
+        const response = await fetch("/api/tasks");
+        if (!response.ok) return;
+        const tasks = await response.json();
+        
+        // Skip DOM update if data is unchanged to prevent hover flickering
+        const tasksJson = JSON.stringify(tasks);
+        if (tasksJson === lastTasksJson) return;
+        lastTasksJson = tasksJson;
+        
+        const tbody = document.getElementById("tasks-table-body");
+        const historyTbody = document.getElementById("history-tasks-table-body");
+        if (!tbody || !historyTbody) return;
+        
+        tbody.innerHTML = "";
+        historyTbody.innerHTML = "";
+        
+        const activeTasks = tasks.filter(t => ["running", "pending", "paused"].includes(t.status.toLowerCase()));
+        const historyTasks = tasks.filter(t => ["completed", "failed", "cancelled"].includes(t.status.toLowerCase()));
+        
+        // Render Active Tasks
+        if (activeTasks.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 20px;">No active tasks. Run a simulation to start.</td></tr>`;
+        } else {
+            activeTasks.forEach(task => {
+                tbody.appendChild(createTaskRow(task, true));
+            });
+        }
+        
+        // Render History Tasks
+        if (historyTasks.length === 0) {
+            historyTbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); padding: 20px;">No task history.</td></tr>`;
+        } else {
+            historyTasks.forEach(task => {
+                historyTbody.appendChild(createTaskRow(task, false));
+            });
+        }
+    } catch (e) {
+        console.error("Error updating tasks table:", e);
+    }
+}
+
+async function pauseTask(taskId) {
+    try {
+        const response = await fetch("/api/tasks/pause", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task_id: taskId })
+        });
+        if (response.ok) {
+            updateTasksTable();
+        }
+    } catch (e) {
+        console.error("Error pausing task:", e);
+    }
+}
+
+async function resumeTask(taskId) {
+    try {
+        const response = await fetch("/api/tasks/resume", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task_id: taskId })
+        });
+        if (response.ok) {
+            updateTasksTable();
+        }
+    } catch (e) {
+        console.error("Error resuming task:", e);
+    }
+}
+
+async function cancelTask(taskId) {
+    try {
+        const response = await fetch("/api/tasks/cancel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task_id: taskId })
+        });
+        if (response.ok) {
+            updateTasksTable();
+        }
+    } catch (e) {
+        console.error("Error cancelling task:", e);
+    }
+}
+
+async function clearAllTasks() {
+    if (!confirm("Are you sure you want to clear all tasks and executions from the database?")) return;
+    try {
+        const response = await fetch("/api/tasks/clear", {
+            method: "POST"
+        });
+        if (response.ok) {
+            updateTasksTable();
+            fetchStatus();
+        }
+    } catch (e) {
+        console.error("Error clearing tasks:", e);
+    }
+}
+
+async function resetFactory() {
+    if (!confirm("WARNING: This will reset LIEM OS to factory defaults. All database records, settings, telemetry, loaded VRAM models, active providers, and generated simulation files (like finance_tool.py) will be cleared. Proceed?")) return;
+    try {
+        const response = await fetch("/api/system/reset", {
+            method: "POST"
+        });
+        if (response.ok) {
+            // Switch back to console tab
+            switchTab('tab-console');
+            // Clear current screen logs state
+            activeLogs = [];
+            document.getElementById("log-lines").innerHTML = "";
+            // Reset active provider selector in DOM
+            document.getElementById("provider-select").value = "antigravity";
+            // Refresh
+            fetchStatus();
+            updateTasksTable();
+        }
+    } catch (e) {
+        console.error("Error resetting factory defaults:", e);
+    }
+}
+
+async function deleteTask(taskId) {
+    if (!confirm(`Are you sure you want to delete task ${taskId} from history?`)) return;
+    try {
+        const response = await fetch("/api/tasks/delete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ task_id: taskId })
+        });
+        if (response.ok) {
+            updateTasksTable();
+            fetchStatus();
+        }
+    } catch (e) {
+        console.error("Error deleting task:", e);
+    }
+}
+
+async function updatePlanList() {
+    try {
+        const response = await fetch("/api/executions");
+        if (!response.ok) return;
+        const executions = await response.json();
+        
+        // Filter executions to only show ACTIVE plans (status is "running")
+        const activeExecutions = executions.filter(exec => exec.status === "running");
+        
+        const execsJson = JSON.stringify(activeExecutions);
+        if (execsJson === lastExecutionsJson) return;
+        lastExecutionsJson = execsJson;
+        
+        const container = document.getElementById("plan-list");
+        if (!container) return;
+        
+        container.innerHTML = "";
+        if (activeExecutions.length === 0) {
+            container.innerHTML = `<li class="plan-item" style="color: var(--text-secondary); font-size: 11px; padding: 4px 0;">No active plans</li>`;
+            return;
+        }
+        
+        activeExecutions.forEach(exec => {
+            const li = document.createElement("li");
+            li.className = "plan-item active";
+            li.setAttribute("data-tooltip", `Plan: ${exec.execution_id} (${exec.status})`);
+            
+            li.innerHTML = `
+                <i class="fa-solid fa-diagram-project" style="color: var(--success-color); margin-right: 8px;"></i>
+                <span style="font-family: var(--font-mono); font-size: 11px;">${exec.execution_id}</span>
+            `;
+            container.appendChild(li);
+        });
+    } catch (e) {
+        console.error("Error updating plan list:", e);
     }
 }

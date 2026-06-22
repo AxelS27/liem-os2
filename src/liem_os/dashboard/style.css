@@ -281,6 +281,7 @@ body {
     display: flex;
     justify-content: space-between;
     padding: 12px 20px;
+    flex-shrink: 0;
 }
 
 .window-controls {
@@ -518,6 +519,7 @@ body {
     background-color: var(--bg-main);
     border-top: 1px solid var(--border-color);
     padding: 15px 20px;
+    flex-shrink: 0;
 }
 
 .prompt-form {
@@ -577,6 +579,7 @@ body {
     overflow-x: auto;
     white-space: nowrap;
     scrollbar-width: none; /* Hide scrollbar for Firefox */
+    flex-shrink: 0;
 }
 
 .tabs-nav::-webkit-scrollbar {
@@ -1034,7 +1037,7 @@ body {
         margin-bottom: 20px;
     }
     
-    .logo span, .add-btn, .section-title, .provider-selector-container, .provider-section-title {
+    .logo span, .add-btn, .section-title, .provider-selector-container, .provider-section-title, .telemetry-scope-title, .quota-progress-container {
         display: none !important;
     }
     
@@ -1127,3 +1130,230 @@ body {
         max-width: 90%;
     }
 }
+
+/* Tasks Tab Layout & Table Styling */
+.tab-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.tab-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.toolbar-btn {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.toolbar-btn i {
+    font-size: 12px;
+}
+
+.toolbar-btn:hover {
+    border-color: var(--accent-color);
+    background-color: rgba(74, 144, 226, 0.05);
+}
+
+.toolbar-btn.clear-btn:hover {
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+    background-color: rgba(241, 196, 15, 0.05);
+}
+
+.toolbar-btn.reset-btn:hover {
+    border-color: var(--error-color);
+    color: var(--error-color);
+    background-color: rgba(231, 76, 60, 0.05);
+}
+
+.tasks-table-container {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow-x: auto;
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.tasks-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+    text-align: left;
+}
+
+.tasks-table th {
+    background-color: var(--bg-sidebar);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 11px;
+}
+
+.tasks-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.tasks-table tr:last-child td {
+    border-bottom: none;
+}
+
+.tasks-table tr:hover td {
+    background-color: rgba(255, 255, 255, 0.015);
+}
+
+/* Status Badges */
+.task-status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.task-status-badge.pending {
+    background-color: rgba(241, 196, 15, 0.1);
+    color: var(--warning-color);
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.task-status-badge.running {
+    background-color: rgba(74, 144, 226, 0.1);
+    color: var(--accent-color);
+    border: 1px solid rgba(74, 144, 226, 0.3);
+    animation: status-pulse 2s infinite;
+}
+
+.task-status-badge.completed {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.task-status-badge.failed {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--error-color);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.task-status-badge.paused {
+    background-color: rgba(144, 148, 156, 0.15);
+    color: var(--text-secondary);
+    border: 1px solid rgba(144, 148, 156, 0.3);
+}
+
+.task-status-badge.cancelled {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.2);
+}
+
+@keyframes status-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+/* Action buttons inside Table */
+.task-action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.task-row-btn {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 5px 10px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-weight: 500;
+}
+
+.task-row-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--text-secondary);
+}
+
+.task-row-btn.pause-btn:hover {
+    color: var(--warning-color);
+    border-color: var(--warning-color);
+    background-color: rgba(241, 196, 15, 0.05);
+}
+
+.task-row-btn.resume-btn:hover {
+    color: var(--success-color);
+    border-color: var(--success-color);
+    background-color: rgba(46, 204, 113, 0.05);
+}
+
+.task-row-btn.cancel-btn:hover {
+    color: var(--error-color);
+    border-color: var(--error-color);
+    background-color: rgba(231, 76, 60, 0.05);
+}
+
+.task-row-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Detailed Telemetry & Quota Styling */
+.telemetry-scope-title {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.quota-progress-container {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 8px 10px;
+}
+
+.quota-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+
