@@ -312,39 +312,8 @@ def parse_skill_metadata(full_path, default_name):
 def get_declarative_skills():
     skills = []
     
-    # 1. Resolve local project agents directory robustly
-    cwd_agents = os.path.join(os.getcwd(), "agents")
-    parent_agents = os.path.join(os.path.dirname(os.getcwd()), "agents")
-    liem_home = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    installed_agents = os.path.join(liem_home, "agents")
-    
-    agents_dir = None
-    for candidate in [cwd_agents, parent_agents, installed_agents]:
-        if os.path.exists(candidate) and os.path.isdir(candidate):
-            agents_dir = candidate
-            break
-            
-    if agents_dir:
-        for root, dirs, files in os.walk(agents_dir):
-            for file in files:
-                if file.endswith(".md"):
-                    full_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(full_path, agents_dir).replace("\\", "/")
-                    default_name = file.replace(".md", "").replace("_", " ").title()
-                    domain = os.path.basename(root).upper()
-                    if domain == "AGENTS":
-                        domain = "LOCAL"
-                    name, description = parse_skill_metadata(full_path, default_name)
-                    skills.append({
-                        "name": name,
-                        "file": f"agents/{rel_path}",
-                        "domain": f"LOCAL {domain}",
-                        "description": description
-                    })
-
-    # 2. If Antigravity, also load Global and Workspace customizations
+    # 1. Load Global Customizations Root (specifically for Antigravity)
     if active_provider == "antigravity":
-        # Global Customizations Root
         global_skills_dir = os.path.join(os.path.expanduser("~"), ".gemini", "config", "skills")
         if os.path.exists(global_skills_dir) and os.path.isdir(global_skills_dir):
             for item in os.listdir(global_skills_dir):
@@ -361,25 +330,25 @@ def get_declarative_skills():
                             "description": description
                         })
                         
-        # Workspace Customizations Root
-        for base in [os.getcwd(), os.path.dirname(os.getcwd())]:
-            workspace_skills_dir = os.path.join(base, ".agents", "skills")
-            if os.path.exists(workspace_skills_dir) and os.path.isdir(workspace_skills_dir):
-                for item in os.listdir(workspace_skills_dir):
-                    item_path = os.path.join(workspace_skills_dir, item)
-                    if os.path.isdir(item_path):
-                        skill_md = os.path.join(item_path, "SKILL.md")
-                        if os.path.exists(skill_md):
-                            default_name = item.replace("-", " ").title()
-                            name, description = parse_skill_metadata(skill_md, default_name)
-                            skills.append({
-                                "name": name,
-                                "file": f".agents/skills/{item}/SKILL.md",
-                                "domain": "WORKSPACE CUSTOMIZATION",
-                                "description": description
-                            })
-                break
-                
+    # 2. Load Workspace Customizations Root (available to active workspace)
+    for base in [os.getcwd(), os.path.dirname(os.getcwd())]:
+        workspace_skills_dir = os.path.join(base, ".agents", "skills")
+        if os.path.exists(workspace_skills_dir) and os.path.isdir(workspace_skills_dir):
+            for item in os.listdir(workspace_skills_dir):
+                item_path = os.path.join(workspace_skills_dir, item)
+                if os.path.isdir(item_path):
+                    skill_md = os.path.join(item_path, "SKILL.md")
+                    if os.path.exists(skill_md):
+                        default_name = item.replace("-", " ").title()
+                        name, description = parse_skill_metadata(skill_md, default_name)
+                        skills.append({
+                            "name": name,
+                            "file": f".agents/skills/{item}/SKILL.md",
+                            "domain": "WORKSPACE CUSTOMIZATION",
+                            "description": description
+                        })
+            break
+            
     return skills
 
 @app.post("/api/prompt")
