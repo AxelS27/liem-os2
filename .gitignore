@@ -4,11 +4,7 @@ __pycache__/
 .pytest_cache/
 
 # Local databases and runtime state files
-runtime/*.db
-runtime/*.db-journal
-runtime/*.db-wal
-runtime/*.db-shm
-runtime/finance_tool.py
+runtime/
 finance_tool.py
 
 # OS caches
