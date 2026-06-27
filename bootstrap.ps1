@@ -2,7 +2,16 @@
 # This script ensures Rust, uv, and a valid Python environment are installed, then configures the virtual environment.
 
 $ErrorActionPreference = "Stop"
-Write-Host "=== LIEM OS BOOTSTRAPPER ===" -ForegroundColor Cyan
+Write-Host ""
+Write-Host ".----------------------------------------." -ForegroundColor Cyan
+Write-Host "|                                        |" -ForegroundColor Cyan
+Write-Host "|   _    ___ ___ __  __       ___  ___   |" -ForegroundColor Cyan
+Write-Host "|  | |  |_ _| __|  \/  |     / _ \/ __|  |" -ForegroundColor Cyan
+Write-Host "|  | |__ | || _|| |\/| |    | (_) \__ \  |" -ForegroundColor Cyan
+Write-Host "|  |____|___|___|_|  |_|     \___/|___/  |" -ForegroundColor Cyan
+Write-Host "|                                        |" -ForegroundColor Cyan
+Write-Host "'----------------------------------------'" -ForegroundColor Cyan
+Write-Host "[Bootstrap] Starting LIEM OS automated environment bootstrapper..."
 
 # 1. Check/Install Rust
 $rustcExists = Get-Command rustc -ErrorAction SilentlyContinue
@@ -135,25 +144,16 @@ uv pip install -e .
 Write-Host "[Bootstrap] Verifying installation..."
 & ".\.venv\Scripts\liem-os.exe" --help
 
-# Print matching LIEM OS welcome ASCII art in cyan
-Write-Host ""
-Write-Host ".----------------------------------------." -ForegroundColor Cyan
-Write-Host "|                                        |" -ForegroundColor Cyan
-Write-Host "|   _    ___ ___ __  __       ___  ___   |" -ForegroundColor Cyan
-Write-Host "|  | |  |_ _| __|  \/  |     / _ \/ __|  |" -ForegroundColor Cyan
-Write-Host "|  | |__ | || _|| |\/| |    | (_) \__ \  |" -ForegroundColor Cyan
-Write-Host "|  |____|___|___|_|  |_|     \___/|___/  |" -ForegroundColor Cyan
-Write-Host "|                                        |" -ForegroundColor Cyan
-Write-Host "'----------------------------------------'" -ForegroundColor Cyan
-
-# Print matching colorized completion card box
-Write-Host ""
-Write-Host ".------------------------------------------------------------." -ForegroundColor Green
-Write-Host "|                                                            |" -ForegroundColor Green
-Write-Host "|  SUCCESS: LIEM OS bootstrap completed successfully!        |" -ForegroundColor Green
-Write-Host "|                                                            |" -ForegroundColor Green
-Write-Host "|  To initialize your first project workspace, run:          |" -ForegroundColor Green
-Write-Host "|  -> .venv\Scripts\liem-os init <project-name>              |" -ForegroundColor Green
-Write-Host "|                                                            |" -ForegroundColor Green
-Write-Host "'------------------------------------------------------------'" -ForegroundColor Green
-Write-Host ""
+# Print completion card dynamically using python to guarantee identical Rich Panel UI
+try {
+    & ".\.venv\Scripts\python.exe" bootstrap.py --completion-only
+} catch {
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host "SUCCESS: LIEM OS bootstrap completed successfully!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "To initialize your first project workspace, run:"
+    Write-Host "  .venv\Scripts\liem-os init <project-name>" -ForegroundColor Cyan
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host ""
+}

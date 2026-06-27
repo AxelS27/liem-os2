@@ -82,7 +82,33 @@ def install_uv():
             os.environ["PATH"] += os.pathsep + uv_bin
 
 def main():
-    print("=== LIEM OS BOOTSTRAPPER ===")
+    # ANSI Colors
+    CYAN = ""
+    RESET = ""
+    if os.name == 'nt':
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+            CYAN = "\033[36m"
+            RESET = "\033[0m"
+        except:
+            pass
+    else:
+        CYAN = "\033[36m"
+        RESET = "\033[0m"
+
+    art = r"""
+.----------------------------------------.
+|                                        |
+|   _    ___ ___ __  __       ___  ___   |
+|  | |  |_ _| __|  \/  |     / _ \/ __|  |
+|  | |__ | || _|| |\/| |    | (_) \__ \  |
+|  |____|___|___|_|  |_|     \___/|___/  |
+|                                        |
+'----------------------------------------'"""
+    print(f"\n{CYAN}{art}{RESET}")
+    print("[Bootstrap] Starting LIEM OS automated environment bootstrapper...")
     
     # 1. Rust Check and Installation
     if not check_command("rustc"):
@@ -171,6 +197,9 @@ def main():
         print(f"[Bootstrap] Error installing dependencies: {e}")
         sys.exit(1)
         
+    print_completion_card()
+
+def print_completion_card():
     # ANSI Colors
     CYAN = ""
     GREEN = ""
@@ -193,16 +222,6 @@ def main():
         GREEN = "\033[32m"
         RESET = "\033[0m"
 
-    art = r"""
-.----------------------------------------.
-|                                        |
-|   _    ___ ___ __  __       ___  ___   |
-|  | |  |_ _| __|  \/  |     / _ \/ __|  |
-|  | |__ | || _|| |\/| |    | (_) \__ \  |
-|  |____|___|___|_|  |_|     \___/|___/  |
-|                                        |
-'----------------------------------------'"""
-    print(f"\n{CYAN}{art}{RESET}")
     # Try importing rich from the new virtual environment dynamically
     try:
         # Resolve site-packages directory in the virtual environment
@@ -216,7 +235,7 @@ def main():
             else:
                 site_packages = os.path.join(lib_path, f"python3.{sys.version_info.minor}", "site-packages")
         
-        if os.path.exists(site_packages):
+        if os.path.exists(site_packages) and site_packages not in sys.path:
             sys.path.insert(0, site_packages)
             
         from rich.console import Console
@@ -253,7 +272,6 @@ def main():
         else:
             print(f"  {CYAN}.venv/bin/liem-os init <project-name>{RESET}")
         print(f"{GREEN}============================================================{RESET}")
-
 
 
 if __name__ == "__main__":
