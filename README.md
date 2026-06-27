@@ -129,16 +129,93 @@ LIEM/
         └── ADR-007-model-offloading-vram.md
 ```
 
-## 🚀 Running the Engine
+## 🚀 Getting Started & Workflow Guide
 
-LIEM OS features a fully implemented Python runtime driver under `src/` that loads declarative markdown agents, manages simulated GPU allocations, and handles reactive state loops.
-
-To run the end-to-end verification pipeline:
-```bash
-python src/main.py
-```
+Follow this step-by-step guide to clone, configure, and build software from scratch using **Liem OS** and **Spec-Driven Development (SDD)**.
 
 ---
+
+### Phase 1: Setup Liem OS (One-Time Setup)
+
+First, clone and set up the orchestrator engine on your local machine:
+
+1. **Clone the Liem OS repository**
+   Use `npx degit` to fetch a clean template of the orchestrator:
+   ```bash
+   npx degit AxelS27/liem-os2 my-liem-os
+   cd my-liem-os
+   ```
+
+2. **Bootstrap the Virtual Environment**
+   Run the bootstrapping script to automatically set up the virtual environment (`.venv`) and install all package dependencies (including PyWebView, SkillSpector, specify-cli, and required packages):
+   ```bash
+   python bootstrap.py
+   ```
+   *(This also compiles the local package in editable mode and configures token-optimizing RTK hooks).*
+
+---
+
+### Phase 2: Initialize a New Project Workspace
+
+Once the orchestrator is ready, you can bootstrap a new workspace for any software project (for example, a Next.js or Python e-commerce application):
+
+3. **Initialize Proyek Baru**
+   Run the Liem OS CLI command to scaffold your new project. This automatically triggers `specify-cli` (GitHub Spec Kit) to set up the Spec-Driven Development templates, constitution, workflows, and agent skills:
+   ```bash
+   .venv\Scripts\liem-os init ecommerce-shop
+   cd ecommerce-shop
+   ```
+   *(Note: For Unix/macOS, use `.venv/bin/liem-os` instead).*
+
+4. **Nyalakan Engine & Dashboard Visual**
+   Start the Liem OS desktop GUI and FastAPI server. Because the GUI blocks, you must launch it in a separate external command prompt:
+   ```bash
+   # On Windows
+   start cmd /k ..\.venv\Scripts\python.exe src\liem_os\main.py
+   
+   # On macOS/Linux
+   ../.venv/bin/python src/liem_os/main.py &
+   ```
+   *(This opens the native desktop dashboard loaded on `http://127.0.0.1:8000/` in standby mode).*
+
+---
+
+### Phase 3: Spec-Driven Development (SDD) Workflow
+
+Once your project is initialized, you develop code using the integrated SDD commands via your coding assistant (Claude Code or Gemini/Antigravity):
+
+5. **Define the Project Rules (Constitution)**
+   Establish your project's technology stack, coding standards, and principles:
+   - **Antigravity (Gemini)**: `/speckit.constitution`
+   - **Claude Code**: `/speckit-constitution`
+   *(This creates `CONSTITUTION.md` in your repository root).*
+
+6. **Specify a New Feature (Specify)**
+   Define your feature's functional requirements and user stories:
+   - **Antigravity (Gemini)**: `/speckit.specify "Build a shopping cart page with checkout"`
+   *(This automatically creates a Git branch, creates `specs/[branch-name]/spec.md`, and prepares the directory).*
+
+7. **Plan the Technical Implementation (Plan)**
+   Deconstruct the specification into a concrete technical architecture blueprint:
+   - **Antigravity (Gemini)**: `/speckit.plan`
+   *(This generates `specs/[branch-name]/plan.md` detailing API schemas, databases, and test cases).*
+
+8. **Generate the Actionable Task List (Tasks)**
+   Compile the plan into a checklist task file:
+   - **Antigravity (Gemini)**: `/speckit.tasks`
+   *(This generates `specs/[branch-name]/task.md` outlining exact file edits).*
+
+9. **Execute Code Changes (Implement)**
+   Generate the actual code changes step-by-step based on the task checklist:
+   - **Antigravity (Gemini)**: `/speckit.implement`
+
+10. **Validate and Converge (Converge)**
+    Run local unit tests and static security scans (SkillSpector) to ensure everything is correct and secure before pushing:
+    - **Antigravity (Gemini)**: `/speckit.converge`
+    *(Once passed, push to GitHub where the GHA pipeline will run the final build validation!)*
+
+---
+
 
 ## 🔄 End-to-End Execution Workflow Example
 
