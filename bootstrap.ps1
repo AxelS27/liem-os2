@@ -135,6 +135,25 @@ uv pip install -e .
 Write-Host "[Bootstrap] Verifying installation..."
 & ".\.venv\Scripts\liem-os.exe" --help
 
-Write-Host "=== BOOTSTRAP COMPLETE ===" -ForegroundColor Green
-Write-Host "To initialize a new project, run:"
-Write-Host "  .venv\Scripts\liem-os init <project-name>"
+# Print matching LIEM OS welcome ASCII art in cyan
+Write-Host ""
+Write-Host ".----------------------------------------." -ForegroundColor Cyan
+Write-Host "|                                        |" -ForegroundColor Cyan
+Write-Host "|   _    ___ ___ __  __       ___  ___   |" -ForegroundColor Cyan
+Write-Host "|  | |  |_ _| __|  \/  |     / _ \/ __|  |" -ForegroundColor Cyan
+Write-Host "|  | |__ | || _|| |\/| |    | (_) \__ \  |" -ForegroundColor Cyan
+Write-Host "|  |____|___|___|_|  |_|     \___/|___/  |" -ForegroundColor Cyan
+Write-Host "|                                        |" -ForegroundColor Cyan
+Write-Host "'----------------------------------------'" -ForegroundColor Cyan
+
+# Print matching colorized completion card box
+Write-Host ""
+Write-Host ".------------------------------------------------------------." -ForegroundColor Green
+Write-Host "|                                                            |" -ForegroundColor Green
+Write-Host "|  SUCCESS: LIEM OS bootstrap completed successfully!        |" -ForegroundColor Green
+Write-Host "|                                                            |" -ForegroundColor Green
+Write-Host "|  To initialize your first project workspace, run:          |" -ForegroundColor Green
+Write-Host "|  -> .venv\Scripts\liem-os init <project-name>              |" -ForegroundColor Green
+Write-Host "|                                                            |" -ForegroundColor Green
+Write-Host "'------------------------------------------------------------'" -ForegroundColor Green
+Write-Host ""
