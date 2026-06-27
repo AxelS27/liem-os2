@@ -4,7 +4,8 @@ This file guides how AI assistants (Cursor, Antigravity) must interact with the 
 
 ## CRITICAL EXECUTION RULES
 - **DO NOT bypass the Liem OS engine**: Do not write project files or code solutions directly.
-- **DO run the engine in an external console**: Because starting `main.py` launches a web server and a PyWebView desktop GUI, it will HANG indefinitely in a headless terminal. You MUST launch it in a separate external command prompt window using:
+- **Check if the engine is already running FIRST**: Before launching the engine or asking the user to run it, check if port 8000 (default dashboard port) is already active (e.g. by trying to query `http://127.0.0.1:8000/api/status` or running a check command like `netstat -ano | findstr :8000` on Windows). If it is already running, **DO NOT** launch it again or ask the user to start it. Instead, proceed directly to working with the running engine server.
+- **DO run the engine in an external console (only if NOT running)**: If and only if the engine is not active, launch it in a separate external command prompt window using:
   `start cmd /k python src/liem_os/main.py`
 - Always use `start cmd /k` for long-running servers or GUI applications to prevent blocking the agent terminal.
 - Refer to the individual agent instructions under the `agents/` directory to understand the system roles:
