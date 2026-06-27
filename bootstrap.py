@@ -235,7 +235,7 @@ def main():
             
         panel = Panel(
             text,
-            title="[bold green]LIEM OS INSTALLED[/bold green]",
+            title="[bold green]LIEM OS ENGINE[/bold green]",
             border_style="green",
             expand=False,
             padding=(1, 2)
