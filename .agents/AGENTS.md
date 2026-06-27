@@ -46,3 +46,22 @@ LIEM OS consists of:
 
 ## Documentation Rules
 - **Always use Context7 MCP**: Use the Context7 MCP server to fetch current documentation whenever you need information about a library, framework, SDK, API, CLI tool, or cloud service. Always call `resolve-library-id` first, select the best library ID in `/org/project` format, and then call `query-docs` to fetch the docs before answering. Do not rely on web search or internal memory when Context7 can resolve the documentation.
+
+## 🛑 CODEBASE ACCESS RESTRICTION & STRUCTURE SUMMARY (TOKEN SAVER)
+To optimize token usage and avoid unnecessary codebase scanning, **do NOT read the Liem OS python source code files (under `src/liem_os/`) directly** unless the user explicitly requests you to modify or debug the Liem OS engine itself. Instead, rely on the following structural map:
+
+### 📂 File Structure and Purpose
+1. **`bootstrap.py` / `bootstrap.ps1` / `bootstrap.bat`**: Automatic environment provisioners. Reuses existing `.venv`, installs packages, and configures dependencies.
+2. **`src/liem_os/main.py`**: CLI entrypoint. 
+   - `liem-os init <project-name>`: Scaffolds project templates, generates `run.bat`/`run.sh`, and initializes Spec Kit (Gemini + Claude integrations).
+   - `liem-os start [project-path]`: Launches the web server and native webview desktop app. Accepts an optional project folder path.
+3. **`src/liem_os/server.py`**: Web API server (FastAPI) and UI dashboard provider. Receives user prompts at `/api/prompt` and starts the agent pipeline simulation.
+4. **`src/liem_os/kernel/`**: Orchestration logic (scheduler, security guard, event loop).
+5. **`src/liem_os/agents/`**: Domain-specific agent prompt guidelines (coordinators and specialists).
+6. **`registry/agents.yaml`**: Mapping of agent roles, VRAM costs, and capabilities.
+
+### 💻 Core Commands and Usage
+* **Setup Environment**: Run `bootstrap.bat` (Windows) or `python bootstrap.py` (Unix).
+* **Create Project Workspace**: `.venv\Scripts\liem-os init <project-name>`
+* **Start Engine**: `.venv\Scripts\liem-os start <project-name>` (or double-click `run.bat` inside the project folder).
+* **Trigger Task Programmatically**: Send HTTP POST to `http://127.0.0.1:8000/api/prompt` with JSON `{"prompt": "<instruction>"}`.

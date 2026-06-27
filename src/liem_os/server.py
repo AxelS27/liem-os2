@@ -737,8 +737,10 @@ async def trigger_prompt(req: PromptRequest):
     prompt_lower = req.prompt.strip().lower()
     greetings = ["halo", "hello", "hi", "hey", "p", "test", "apa kabar", "siapa kamu", "who are you", "help", "tolong", "siapa"]
     
-    # Check if prompt is a short conversational input or greeting
-    if any(g in prompt_lower for g in greetings) or len(prompt_lower.split()) < 3:
+    # Check if prompt is a short conversational input or greeting (matching exact words to prevent substring issues)
+    prompt_words = prompt_lower.split()
+    is_greeting = any(w in greetings for w in prompt_words) or (prompt_lower in greetings)
+    if is_greeting or len(prompt_words) < 3:
         async def run_conversational_reply():
             vram_manager.load_model("axel")
             await asyncio.sleep(0.8)
