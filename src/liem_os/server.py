@@ -697,24 +697,34 @@ def get_declarative_skills():
                         })
                         
     # 2. Load Workspace Customizations Root (available to active workspace)
-    from liem_os.kernel.security import find_skills_root
-    workspace_skills_dir = find_skills_root()
-    if os.path.exists(workspace_skills_dir) and os.path.isdir(workspace_skills_dir):
-        rel_folder = ".claude/skills" if ".claude" in workspace_skills_dir else ".agents/skills"
-        for item in os.listdir(workspace_skills_dir):
-            item_path = os.path.join(workspace_skills_dir, item)
-            if os.path.isdir(item_path):
-                skill_md = os.path.join(item_path, "SKILL.md")
-                if os.path.exists(skill_md):
-                    default_name = item.replace("-", " ").title()
-                    name, description = parse_skill_metadata(skill_md, default_name)
-                    if not any(s["name"] == name for s in skills):
-                        skills.append({
-                            "name": name,
-                            "file": f"{rel_folder}/{item}/SKILL.md",
-                            "domain": "WORKSPACE CUSTOMIZATION",
-                            "description": description
-                        })
+    # 2. Load Workspace Customizations Roots (traversing all the way up from CWD)
+    current = os.path.abspath(os.getcwd())
+    seen_roots = set()
+    while True:
+        for folder in [".claude", ".agents"]:
+            skills_dir = os.path.join(current, folder, "skills")
+            if os.path.isdir(skills_dir) and skills_dir not in seen_roots:
+                seen_roots.add(skills_dir)
+                rel_folder = f"{folder}/skills"
+                for item in os.listdir(skills_dir):
+                    item_path = os.path.join(skills_dir, item)
+                    if os.path.isdir(item_path):
+                        skill_md = os.path.join(item_path, "SKILL.md")
+                        if os.path.exists(skill_md):
+                            default_name = item.replace("-", " ").title()
+                            name, description = parse_skill_metadata(skill_md, default_name)
+                            if not any(s["name"] == name for s in skills):
+                                skills.append({
+                                    "name": name,
+                                    "file": f"{rel_folder}/{item}/SKILL.md",
+                                    "domain": "WORKSPACE CUSTOMIZATION",
+                                    "description": description
+                                })
+        
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
             
     return skills
 
