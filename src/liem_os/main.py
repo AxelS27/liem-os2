@@ -454,29 +454,28 @@ def cli_entrypoint():
     print(f"\n{CYAN}[Liem OS] Integrating Spec-Driven Development (GitHub Spec Kit)...{RESET}")
     try:
         import subprocess
-        # Try running using current python binary + module specify_cli
-        cmd = [sys.executable, "-m", "specify_cli", "init", "--here", "--integration", "claude", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
-        result = subprocess.run(
-            cmd,
-            cwd=project_name,
-            capture_output=True,
-            text=True
-        )
-        if result.returncode == 0:
-            print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!{RESET}")
-        else:
-            # Fallback to standalone specify command
-            cmd_fallback = ["specify", "init", "--here", "--integration", "claude", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
-            result_fallback = subprocess.run(
-                cmd_fallback,
-                cwd=project_name,
-                capture_output=True,
-                text=True
-            )
-            if result_fallback.returncode == 0:
-                print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!{RESET}")
+        # Dynamically locate the specify executable inside the active virtual environment's bin/Scripts folder
+        bin_dir = os.path.dirname(sys.executable)
+        specify_bin = os.path.join(bin_dir, "specify.exe" if os.name == "nt" else "specify")
+        
+        if not os.path.exists(specify_bin):
+            specify_bin = "specify"  # Fallback to PATH
+            
+        # 1. Run specify init to set up shared infrastructure and default Gemini integration
+        cmd_init = [specify_bin, "init", "--here", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
+        result_init = subprocess.run(cmd_init, cwd=project_name, capture_output=True, text=True)
+        
+        if result_init.returncode == 0:
+            # 2. Run specify integration install to set up Claude Code integration
+            cmd_claude = [specify_bin, "integration", "install", "claude", "--force"]
+            result_claude = subprocess.run(cmd_claude, cwd=project_name, capture_output=True, text=True)
+            
+            if result_claude.returncode == 0:
+                print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit (Gemini & Claude Code integrations)!{RESET}")
             else:
-                print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {result.stderr or result_fallback.stderr}{RESET}")
+                print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit (Gemini), but Claude setup warning: {result_claude.stderr.strip()}{RESET}")
+        else:
+            print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {result_init.stderr.strip()}{RESET}")
     except Exception as e:
         print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}{RESET}")
 
