@@ -366,6 +366,13 @@ def cli_entrypoint():
 
     command = sys.argv[1]
     if command == "start":
+        if len(sys.argv) > 2:
+            project_path = sys.argv[2]
+            if os.path.exists(project_path) and os.path.isdir(project_path):
+                os.chdir(project_path)
+            else:
+                print(f"{RED}Error: Project path '{project_path}' does not exist.{RESET}")
+                sys.exit(1)
         start_engine()
         sys.exit(0)
 
@@ -540,17 +547,15 @@ echo "[Liem OS] Launching visual dashboard and orchestrator..."
             text.append("[Option A] 1-Click Launch (Windows Explorer)\n", style="bold magenta")
             text.append(f"-> Double-click the run.bat file inside the project folder.\n\n", style="cyan")
             
-            text.append("[Option B] Terminal Command\n", style="bold magenta")
-            text.append(f"-> cd {project_name}\n", style="cyan")
-            text.append(f"-> ..\\.venv\\Scripts\\liem-os start\n", style="cyan")
+            text.append("[Option B] Terminal Command (Direct launch without cd)\n", style="bold magenta")
+            text.append(f"-> .venv\\Scripts\\liem-os start {project_name}\n", style="cyan")
         else:
             text.append("[Option A] Terminal Launch\n", style="bold magenta")
             text.append(f"-> cd {project_name}\n", style="cyan")
             text.append(f"-> ./run.sh\n\n", style="cyan")
             
-            text.append("[Option B] Direct CLI Command\n", style="bold magenta")
-            text.append(f"-> cd {project_name}\n", style="cyan")
-            text.append(f"-> ../.venv/bin/liem-os start\n", style="cyan")
+            text.append("[Option B] Direct CLI Command (Direct launch without cd)\n", style="bold magenta")
+            text.append(f"-> .venv/bin/liem-os start {project_name}\n", style="cyan")
             
         panel = Panel(
             text,
@@ -570,16 +575,14 @@ echo "[Liem OS] Launching visual dashboard and orchestrator..."
         if os.name == 'nt':
             print(f"\n{MAGENTA}[Option A] 1-Click Launch (Windows Explorer){RESET}")
             print(f"-> Double-click the {CYAN}run.bat{RESET} file inside the project folder.")
-            print(f"\n{MAGENTA}[Option B] Terminal Command{RESET}")
-            print(f"-> cd {project_name}")
-            print(f"-> ..\\.venv\\Scripts\\liem-os start")
+            print(f"\n{MAGENTA}[Option B] Terminal Command (Direct launch without cd){RESET}")
+            print(f"-> .venv\\Scripts\\liem-os start {project_name}")
         else:
             print(f"\n{MAGENTA}[Option A] Terminal Launch{RESET}")
             print(f"-> cd {project_name}")
             print(f"-> ./run.sh")
-            print(f"\n{MAGENTA}[Option B] Direct CLI Command{RESET}")
-            print(f"-> cd {project_name}")
-            print(f"-> ../.venv/bin/liem-os start")
+            print(f"\n{MAGENTA}[Option B] Direct CLI Command (Direct launch without cd){RESET}")
+            print(f"-> .venv/bin/liem-os start {project_name}")
         print(f"{GREEN}============================================================{RESET}")
 
 if __name__ == "__main__":
