@@ -704,23 +704,24 @@ def get_declarative_skills():
                         })
                         
     # 2. Load Workspace Customizations Root (available to active workspace)
-    for base in [os.getcwd(), os.path.dirname(os.getcwd())]:
-        workspace_skills_dir = os.path.join(base, ".agents", "skills")
-        if os.path.exists(workspace_skills_dir) and os.path.isdir(workspace_skills_dir):
-            for item in os.listdir(workspace_skills_dir):
-                item_path = os.path.join(workspace_skills_dir, item)
-                if os.path.isdir(item_path):
-                    skill_md = os.path.join(item_path, "SKILL.md")
-                    if os.path.exists(skill_md):
-                        default_name = item.replace("-", " ").title()
-                        name, description = parse_skill_metadata(skill_md, default_name)
+    from liem_os.kernel.security import find_skills_root
+    workspace_skills_dir = find_skills_root()
+    if os.path.exists(workspace_skills_dir) and os.path.isdir(workspace_skills_dir):
+        rel_folder = ".claude/skills" if ".claude" in workspace_skills_dir else ".agents/skills"
+        for item in os.listdir(workspace_skills_dir):
+            item_path = os.path.join(workspace_skills_dir, item)
+            if os.path.isdir(item_path):
+                skill_md = os.path.join(item_path, "SKILL.md")
+                if os.path.exists(skill_md):
+                    default_name = item.replace("-", " ").title()
+                    name, description = parse_skill_metadata(skill_md, default_name)
+                    if not any(s["name"] == name for s in skills):
                         skills.append({
                             "name": name,
-                            "file": f".agents/skills/{item}/SKILL.md",
+                            "file": f"{rel_folder}/{item}/SKILL.md",
                             "domain": "WORKSPACE CUSTOMIZATION",
                             "description": description
                         })
-            break
             
     return skills
 
