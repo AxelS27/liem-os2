@@ -801,8 +801,8 @@ async def get_skills():
 
 @app.get("/api/security/scan")
 async def scan_security():
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    skills_root = os.path.join(project_root, ".claude", "skills")
+    from liem_os.kernel.security import find_skills_root
+    skills_root = find_skills_root()
     
     try:
         results = await asyncio.to_thread(SkillSpectorScanner.scan_all_skills, skills_root)

@@ -25,8 +25,9 @@ class KernelEventLoop:
         logger.info("[Kernel] Booting LIEM OS engine...")
         self.running = True
         
-        # Run security check on all loaded skills
-        await self._run_security_audit()
+        # Security check on loaded skills is disabled at boot time for speed
+        # (It can still be run manually from the Security Guard tab on the Dashboard).
+        # await self._run_security_audit()
         
         # Subscribe to task completion channel to trigger state machine checks
         self.event_bus.subscribe("task.status.completed", self._on_task_completed)
@@ -35,8 +36,8 @@ class KernelEventLoop:
 
     async def _run_security_audit(self) -> None:
         logger.info("[Kernel] Starting SkillSpector security audit on loaded skills...")
-        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        skills_root = os.path.join(project_root, ".claude", "skills")
+        from liem_os.kernel.security import find_skills_root
+        skills_root = find_skills_root()
         
         try:
             # Run in thread pool to prevent blocking event loop

@@ -7,18 +7,52 @@ from typing import Dict, Any, List
 
 logger = logging.getLogger("LiemSecurity")
 
+def find_venv_dir() -> str:
+    """Traverses upwards from CWD to locate the .venv folder."""
+    cwd = os.getcwd()
+    current = os.path.abspath(cwd)
+    while True:
+        venv_path = os.path.join(current, ".venv")
+        if os.path.isdir(venv_path):
+            return venv_path
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    # Fallback to CWD/.venv
+    return os.path.join(cwd, ".venv")
+
+def find_skills_root() -> str:
+    """Traverses upwards from CWD to locate .claude/skills or .agents/skills."""
+    cwd = os.getcwd()
+    current = os.path.abspath(cwd)
+    while True:
+        path1 = os.path.join(current, ".claude", "skills")
+        path2 = os.path.join(current, ".agents", "skills")
+        if os.path.isdir(path1):
+            return path1
+        if os.path.isdir(path2):
+            return path2
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    # Fallback to CWD/.claude/skills
+    return os.path.join(cwd, ".claude", "skills")
+
 class SkillSpectorScanner:
     @staticmethod
     def get_skillspector_bin() -> str:
         """Resolves the correct skillspector executable path."""
+        venv_dir = find_venv_dir()
+        
         # 1. Check local virtual environment Scripts directory (Windows)
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-        local_venv_bin = os.path.join(base_dir, ".venv", "Scripts", "skillspector.exe")
+        local_venv_bin = os.path.join(venv_dir, "Scripts", "skillspector.exe")
         if os.path.exists(local_venv_bin):
             return local_venv_bin
             
         # 2. Check local virtual environment bin directory (Unix)
-        local_venv_bin_unix = os.path.join(base_dir, ".venv", "bin", "skillspector")
+        local_venv_bin_unix = os.path.join(venv_dir, "bin", "skillspector")
         if os.path.exists(local_venv_bin_unix):
             return local_venv_bin_unix
             
@@ -112,8 +146,11 @@ class SkillSpectorScanner:
             }
 
     @classmethod
-    def scan_all_skills(cls, skills_root: str) -> List[Dict[str, Any]]:
+    def scan_all_skills(cls, skills_root: str = None) -> List[Dict[str, Any]]:
         """Scans all skill subdirectories in the given skills root path."""
+        if not skills_root:
+            skills_root = find_skills_root()
+            
         results = []
         if not os.path.exists(skills_root) or not os.path.isdir(skills_root):
             logger.warning(f"Skills root directory not found: {skills_root}")
