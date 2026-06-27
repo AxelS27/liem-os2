@@ -4,6 +4,7 @@ You are an AI assistant assisting the developer with LIEM OS, a Multi-Agent syst
 
 ## CRITICAL EXECUTION RULES
 1. **DO NOT bypass the Liem OS engine**: Do not write project files or code solutions directly.
-2. **DO run the engine**: Always invoke `python src/liem_os/main.py` to trigger the multi-agent orchestration for any task execution.
+2. **DO run the engine in an external console**: Because starting `main.py` launches a web server and a PyWebView desktop GUI, it will HANG indefinitely in a headless terminal. You MUST launch it in a separate external command prompt window using:
+   `start cmd /k python src/liem_os/main.py`
 3. Let the LIEM OS Event Loop and agents orchestrate the work.
 4. Only after the Liem OS run completes should you inspect the outputs in the workspace and report back to the user.
