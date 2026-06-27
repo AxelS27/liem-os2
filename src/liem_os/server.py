@@ -333,13 +333,6 @@ async def startup_event():
     event_bus.subscribe("task.status.running", on_task_running)
     event_bus.subscribe("task.status.completed", on_task_completed)
     event_bus.subscribe("task.status.failed", on_task_failed)
-    
-    # Run the demo pipeline in the background on startup (wait 1.5s for page to load)
-    async def initial_run():
-        await asyncio.sleep(1.5)
-        await run_pipeline_simulation_task("@axel build a finance calculation tool that handles exceptions.")
-        
-    asyncio.create_task(initial_run())
 
 async def on_task_running(event: Dict[str, Any]):
     task_id = event["task_id"]
