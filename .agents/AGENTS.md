@@ -20,15 +20,15 @@ This file guides how AI assistants (Cursor, Antigravity) must interact with the 
   - On macOS/Linux: `.venv/bin/liem-os init <project-name>`
 
 - **STEP 3: Check and Launch Engine (If not running)**:
-  Check if port 8000 is already active (e.g. by querying `http://127.0.0.1:8000/api/status` or running `netstat -ano | findstr :8000`).
-  - **If port 8000 is active**: DO NOT launch the engine or ask the user to launch it. Proceed to STEP 4.
-  - **If port 8000 is NOT active**: Automatically start the engine in an external console so it does not hang the agent terminal:
+  Check if port 2006 is already active (e.g. by querying `http://127.0.0.1:2006/api/status` or running `netstat -ano | findstr :2006`).
+  - **If port 2006 is active**: DO NOT launch the engine or ask the user to launch it. Proceed to STEP 4.
+  - **If port 2006 is NOT active**: Automatically start the engine in an external console so it does not hang the agent terminal:
     - On Windows: Run `start cmd /k .venv\Scripts\liem-os start <project-name>` (or `.venv\Scripts\liem-os start` from the active project root).
     - On macOS/Linux: Run the engine in the background using `nohup` or similar.
 
 - **STEP 4: Direct Engine Integration (Trigger Prompt)**:
-  Once the engine is running on port 8000, trigger the user request by sending an HTTP POST request to:
-  `http://127.0.0.1:8000/api/prompt` with JSON payload `{"prompt": "<user-request>"}`.
+  Once the engine is running on port 2006, trigger the user request by sending an HTTP POST request to:
+  `http://127.0.0.1:2006/api/prompt` with JSON payload `{"prompt": "<user-request>"}`.
   Do NOT ask the user to type/copy-paste or open the dashboard manually. Trigger it programmatically on behalf of the user using python/curl command execution.
 
 - Always use `start cmd /k` for long-running servers or GUI applications to prevent blocking the agent terminal.
@@ -64,4 +64,4 @@ To optimize token usage and avoid unnecessary codebase scanning, **do NOT read t
 * **Setup Environment**: Run `bootstrap.bat` (Windows) or `python bootstrap.py` (Unix).
 * **Create Project Workspace**: `.venv\Scripts\liem-os init <project-name>`
 * **Start Engine**: `.venv\Scripts\liem-os start <project-name>` (or double-click `run.bat` inside the project folder).
-* **Trigger Task Programmatically**: Send HTTP POST to `http://127.0.0.1:8000/api/prompt` with JSON `{"prompt": "<instruction>"}`.
+* **Trigger Task Programmatically**: Send HTTP POST to `http://127.0.0.1:2006/api/prompt` with JSON `{"prompt": "<instruction>"}`.
