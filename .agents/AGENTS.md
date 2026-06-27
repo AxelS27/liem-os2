@@ -18,3 +18,6 @@ LIEM OS consists of:
 - **Control Plane**: Planner, Router, Scheduler, Validator
 - **Data Plane**: Executor, Context Compressor, Recovery Manager
 - **Kernel**: Event Loop, Event Bus, VRAM Manager
+
+## Documentation Rules
+- **Always use Context7 MCP**: Use the Context7 MCP server to fetch current documentation whenever you need information about a library, framework, SDK, API, CLI tool, or cloud service. Always call `resolve-library-id` first, select the best library ID in `/org/project` format, and then call `query-docs` to fetch the docs before answering. Do not rely on web search or internal memory when Context7 can resolve the documentation.
