@@ -336,6 +336,36 @@ def cli_entrypoint():
         with open(init_py, "w") as f:
             pass
 
+    # Automatically initialize GitHub Spec Kit in the new project
+    print("\n[Liem OS] Integrating Spec-Driven Development (GitHub Spec Kit)...")
+    try:
+        import subprocess
+        # Try running using current python binary + module specify_cli
+        cmd = [sys.executable, "-m", "specify_cli", "init", "--here", "--integration", "claude", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
+        result = subprocess.run(
+            cmd,
+            cwd=project_name,
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            print("[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!")
+        else:
+            # Fallback to standalone specify command
+            cmd_fallback = ["specify", "init", "--here", "--integration", "claude", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
+            result_fallback = subprocess.run(
+                cmd_fallback,
+                cwd=project_name,
+                capture_output=True,
+                text=True
+            )
+            if result_fallback.returncode == 0:
+                print("[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!")
+            else:
+                print(f"[Liem OS] Warning: Could not initialize Spec Kit automatically: {result.stderr or result_fallback.stderr}")
+    except Exception as e:
+        print(f"[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}")
+
     print(f"\nProject '{project_name}' successfully initialized!")
     print(f"To run the engine:")
     print(f"  cd {project_name}")

@@ -16,8 +16,14 @@ tools:
 
 ## PROTOCOL
 1. **Deconstruct Request**: Analyze user prompts for core goals and constraints.
-2. **Dependency Mapping**: Map out task order (e.g., Database schema design must precede Backend implementation).
-3. **Emit Plan**: Generate a structured execution sequence detailing target skills, inputs, and expected outputs.
+2. **Spec-Driven Planning (SDD)**: Always structure plans following the GitHub Spec Kit lifecycle:
+   - Step 1: Write/update the Specification (PRD) (under the `specs/` directory) and check the project Constitution.
+   - Step 2: Write/update the Technical Plan (`plan.md`).
+   - Step 3: Generate the actionable checklist tasks (`task.md`).
+   - Step 4: Execute code implementation based on the tasks.
+   - Step 5: QA test and converge the implementation.
+3. **Dependency Mapping**: Map out task order prioritizing specification and plan tasks before coding/deployment.
+4. **Emit Plan**: Generate a structured execution sequence detailing target skills, inputs, and expected outputs.
 
 ---
 
