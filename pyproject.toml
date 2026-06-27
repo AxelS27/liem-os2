@@ -33,3 +33,8 @@ packages = [
     "liem_os.kernel",
     "liem_os.agents"
 ]
+
+[tool.uv]
+override-dependencies = [
+    "typer>=0.26.8"
+]
