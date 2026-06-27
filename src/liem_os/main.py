@@ -312,18 +312,35 @@ def start_engine():
     server_thread.start()
 
     print(f"{GREEN}[Liem OS] Launching Native Desktop GUI Application...{RESET}")
-    # Open pywebview native desktop window loading the FastAPI root
-    webview.create_window(
-        title="LIEM OS - Enterprise Multi-Agent Orchestrator",
-        url="http://127.0.0.1:8000/",
-        width=1280,
-        height=800,
-        resizable=True,
-        min_size=(1024, 768)
-    )
-    # Start the desktop window loop (blocks until window is closed)
-    webview.start()
-    print(f"{GREEN}[Liem OS] Desktop GUI window closed. Exiting LIEM OS.{RESET}")
+    try:
+        # Open pywebview native desktop window loading the FastAPI root
+        webview.create_window(
+            title="LIEM OS - Enterprise Multi-Agent Orchestrator",
+            url="http://127.0.0.1:8000/",
+            width=1280,
+            height=800,
+            resizable=True,
+            min_size=(1024, 768)
+        )
+        # Start the desktop window loop (blocks until window is closed)
+        webview.start()
+        print(f"{GREEN}[Liem OS] Desktop GUI window closed. Exiting LIEM OS.{RESET}")
+    except Exception as e:
+        print(f"{MAGENTA}[Liem OS] Warning: Native Desktop GUI window could not be initialized ({e}).{RESET}")
+        print(f"{GREEN}[Liem OS] Falling back to default Web Browser. Opening http://127.0.0.1:8000/...{RESET}")
+        try:
+            import webbrowser
+            webbrowser.open("http://127.0.0.1:8000/")
+        except Exception as browser_err:
+            print(f"{RED}[Liem OS] Error opening browser: {browser_err}{RESET}")
+            
+        print(f"{CYAN}[Liem OS] Server is running. Press Ctrl+C in this terminal to exit.{RESET}")
+        import time
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print(f"\n{GREEN}[Liem OS] Exiting LIEM OS.{RESET}")
 
 def cli_entrypoint():
     import sys
