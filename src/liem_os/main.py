@@ -407,18 +407,13 @@ def cli_entrypoint():
         print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}{RESET}")
 
     print(f"\n{GREEN}Project '{project_name}' successfully initialized!{RESET}")
-    print("To run the engine using the virtual environment:")
-    print(f"  cd {project_name}")
+    print(f"{MAGENTA}To run the engine using the virtual environment:{RESET}")
+    print(f"  {CYAN}cd {project_name}{RESET}")
     if os.name == "nt":
         print(f"  {CYAN}..\\.venv\\Scripts\\python.exe src\\liem_os\\main.py{RESET}")
     else:
         print(f"  {CYAN}../.venv/bin/python src/liem_os/main.py{RESET}")
-    print("\nAlternatively, activate the virtual environment first:")
-    if os.name == "nt":
-        print(f"  {CYAN}..\\.venv\\Scripts\\activate{RESET}")
-    else:
-        print(f"  {CYAN}source ../.venv/bin/activate{RESET}")
-    print("  python src/liem_os/main.py")
+
 
 
 if __name__ == "__main__":

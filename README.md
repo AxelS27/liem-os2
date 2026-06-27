@@ -157,17 +157,17 @@ First, clone and set up the orchestrator engine on your local machine:
 
 ### Phase 2: Initialize a New Project Workspace
 
-Once the orchestrator is ready, you can bootstrap a new workspace for any software project (for example, a Next.js or Python e-commerce application):
+Once the orchestrator is ready, you can bootstrap a new workspace for any software project:
 
-3. **Initialize Proyek Baru**
+3. **Initialize New Project**
    Run the Liem OS CLI command to scaffold your new project. This automatically triggers `specify-cli` (GitHub Spec Kit) to set up the Spec-Driven Development templates, constitution, workflows, and agent skills:
    ```bash
-   .venv\Scripts\liem-os init ecommerce-shop
-   cd ecommerce-shop
+   .venv\Scripts\liem-os init <project-name>
+   cd <project-name>
    ```
    *(Note: For Unix/macOS, use `.venv/bin/liem-os` instead).*
 
-4. **Nyalakan Engine & Dashboard Visual**
+4. **Start Engine & Dashboard GUI**
    Start the Liem OS desktop GUI and FastAPI server. Because the GUI blocks, you must launch it in a separate external command prompt:
    ```bash
    # On Windows
@@ -192,7 +192,7 @@ Once your project is initialized, you develop code using the integrated SDD comm
 
 6. **Specify a New Feature (Specify)**
    Define your feature's functional requirements and user stories:
-   - **Antigravity (Gemini)**: `/speckit.specify "Build a shopping cart page with checkout"`
+   - **Antigravity (Gemini)**: `/speckit.specify "Build <feature-description>"`
    *(This automatically creates a Git branch, creates `specs/[branch-name]/spec.md`, and prepares the directory).*
 
 7. **Plan the Technical Implementation (Plan)**
@@ -210,7 +210,7 @@ Once your project is initialized, you develop code using the integrated SDD comm
    - **Antigravity (Gemini)**: `/speckit.implement`
 
 10. **Validate and Converge (Converge)**
-    Run local unit tests and static security scans (SkillSpector) to ensure everything is correct and secure before pushing:
+    Run local unit tests to ensure everything is correct and secure before pushing:
     - **Antigravity (Gemini)**: `/speckit.converge`
     *(Once passed, push to GitHub where the GHA pipeline will run the final build validation!)*
 
