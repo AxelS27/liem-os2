@@ -13,6 +13,9 @@ This file guides how AI assistants (Cursor, Antigravity) must interact with the 
   - Core Planner: [planner.md](file:///d:/Liem OS/agents/core/planner.md)
   - Core Router: [router.md](file:///d:/Liem OS/agents/core/router.md)
   - Core Executor: [executor.md](file:///d:/Liem OS/agents/core/executor.md)
+- **Direct Engine Integration (DO NOT ask user to type/copy-paste to Axel)**: If the engine/server is running on port 8000, you (Antigravity) MUST trigger the task execution directly by sending an HTTP POST request to the running server:
+  `http://127.0.0.1:8000/api/prompt` with JSON payload `{"prompt": "<user-request>"}`.
+  Do not ask the user to open the dashboard and type the request manually. Trigger it programmatically on behalf of the user using python/curl command execution.
 
 ## Architecture Details
 LIEM OS consists of:
