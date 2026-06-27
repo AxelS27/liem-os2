@@ -203,27 +203,56 @@ def main():
 |                                        |
 '----------------------------------------'"""
     print(f"\n{CYAN}{art}{RESET}")
-    if os.name == 'nt':
-        card = f"""
-{GREEN}.------------------------------------------------------------.
-|                                                            |
-|  {GREEN}SUCCESS:{RESET} LIEM OS bootstrap completed successfully!      |
-|                                                            |
-|  To initialize your first project workspace, run:          |
-|  -> {CYAN}.venv\\Scripts\\liem-os init <project-name>{RESET}           |
-|                                                            |
-'------------------------------------------------------------'{RESET}"""
-    else:
-        card = f"""
-{GREEN}.------------------------------------------------------------.
-|                                                            |
-|  {GREEN}SUCCESS:{RESET} LIEM OS bootstrap completed successfully!      |
-|                                                            |
-|  To initialize your first project workspace, run:          |
-|  -> {CYAN}.venv/bin/liem-os init <project-name>{RESET}               |
-|                                                            |
-'------------------------------------------------------------'{RESET}"""
-    print(card)
+    # Try importing rich from the new virtual environment dynamically
+    try:
+        # Resolve site-packages directory in the virtual environment
+        if os.name == 'nt':
+            site_packages = os.path.join(os.path.abspath(".venv"), "Lib", "site-packages")
+        else:
+            lib_path = os.path.join(os.path.abspath(".venv"), "lib")
+            python_dirs = [d for d in os.listdir(lib_path) if d.startswith("python")] if os.path.exists(lib_path) else []
+            if python_dirs:
+                site_packages = os.path.join(lib_path, python_dirs[0], "site-packages")
+            else:
+                site_packages = os.path.join(lib_path, f"python3.{sys.version_info.minor}", "site-packages")
+        
+        if os.path.exists(site_packages):
+            sys.path.insert(0, site_packages)
+            
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.text import Text
+        
+        console = Console()
+        text = Text()
+        text.append("SUCCESS: ", style="bold green")
+        text.append("LIEM OS bootstrap completed successfully!\n\n", style="bold cyan")
+        text.append("To initialize your first project workspace, run:\n", style="bold white")
+        if os.name == 'nt':
+            text.append("-> .venv\\Scripts\\liem-os init <project-name>", style="cyan")
+        else:
+            text.append("-> .venv/bin/liem-os init <project-name>", style="cyan")
+            
+        panel = Panel(
+            text,
+            title="[bold green]LIEM OS INSTALLED[/bold green]",
+            border_style="green",
+            expand=False,
+            padding=(1, 2)
+        )
+        print()
+        console.print(panel)
+        
+    except Exception:
+        # Fallback to clean colored text if rich fails to load (no misaligned box)
+        print(f"\n{GREEN}============================================================{RESET}")
+        print(f"{GREEN}SUCCESS:{RESET} LIEM OS bootstrap completed successfully!")
+        print("\nTo initialize your first project workspace, run:")
+        if os.name == 'nt':
+            print(f"  {CYAN}.venv\\Scripts\\liem-os init <project-name>{RESET}")
+        else:
+            print(f"  {CYAN}.venv/bin/liem-os init <project-name>{RESET}")
+        print(f"{GREEN}============================================================{RESET}")
 
 
 
