@@ -193,18 +193,23 @@ def main():
         GREEN = "\033[32m"
         RESET = "\033[0m"
 
-    print(f"\n{CYAN}==================================================")
-    print("   __    _  ____  __  ___    ____  ____")
-    print("  / /   / |/ /  |/  |/ _ \\  / __ \\/ __/")
-    print(" / /__ /    / /|_/ /  __ / / /_/ /\\ \\  ")
-    print("/____//_/|_/_/  /_/_/      \\____/___/  ")
-    print(f"=================================================={RESET}")
+    art = r"""
+.----------------------------------------.
+|                                        |
+|   _    ___ ___ __  __       ___  ___   |
+|  | |  |_ _| __|  \/  |     / _ \/ __|  |
+|  | |__ | || _|| |\/| |    | (_) \__ \  |
+|  |____|___|___|_|  |_|     \___/|___/  |
+|                                        |
+'----------------------------------------'"""
+    print(f"\n{CYAN}{art}{RESET}")
     print(f"\n{GREEN}=== BOOTSTRAP COMPLETE ==={RESET}")
     print("LIEM OS is ready to run. Start by running:")
     if os.name == 'nt':
         print(f"  {CYAN}.venv\\Scripts\\liem-os init <project-name>{RESET}")
     else:
         print(f"  {CYAN}.venv/bin/liem-os init <project-name>{RESET}")
+
 
 
 if __name__ == "__main__":
