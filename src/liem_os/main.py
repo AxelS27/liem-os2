@@ -264,6 +264,63 @@ async def run_liem_pipeline():
     await kernel.shutdown()
     logger.info("=== LIEM ENGINE EXECUTION COMPLETE ===")
 
+def start_engine():
+    import threading
+    import webview
+    import uvicorn
+    from liem_os.server import app
+
+    # ANSI Colors
+    CYAN = ""
+    GREEN = ""
+    RESET = ""
+    
+    # Enable Windows ANSI support using ctypes
+    if os.name == 'nt':
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+            CYAN = "\033[36m"
+            GREEN = "\033[32m"
+            RESET = "\033[0m"
+        except:
+            pass
+    else:
+        CYAN = "\033[36m"
+        GREEN = "\033[32m"
+        RESET = "\033[0m"
+
+    print(f"\n{CYAN}==================================================")
+    print("   __    _  ____  __  ___    ____  ____")
+    print("  / /   / |/ /  |/  |/ _ \\  / __ \\/ __/")
+    print(" / /__ /    / /|_/ /  __ / / /_/ /\\ \\  ")
+    print("/____//_/|_/_/  /_/_/      \\____/___/  ")
+    print(f"=================================================={RESET}")
+
+    print(f"{GREEN}[Liem OS] Starting Dashboard server on http://127.0.0.1:8000 in background...{RESET}")
+    
+    def start_server():
+        # Run uvicorn server silently in a background thread
+        uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
+
+    print(f"{GREEN}[Liem OS] Launching Native Desktop GUI Application...{RESET}")
+    # Open pywebview native desktop window loading the FastAPI root
+    webview.create_window(
+        title="LIEM OS - Enterprise Multi-Agent Orchestrator",
+        url="http://127.0.0.1:8000/",
+        width=1280,
+        height=800,
+        resizable=True,
+        min_size=(1024, 768)
+    )
+    # Start the desktop window loop (blocks until window is closed)
+    webview.start()
+    print(f"{GREEN}[Liem OS] Desktop GUI window closed. Exiting LIEM OS.{RESET}")
+
 def cli_entrypoint():
     import sys
     import shutil
@@ -299,7 +356,20 @@ def cli_entrypoint():
         RED = "\033[31m"
         RESET = "\033[0m"
 
-    if len(sys.argv) < 3 or sys.argv[1] != "init":
+    if len(sys.argv) < 2:
+        print(f"Usage: {CYAN}liem-os [init <project-name> | start]{RESET}")
+        sys.exit(1)
+
+    command = sys.argv[1]
+    if command == "start":
+        start_engine()
+        sys.exit(0)
+
+    if command != "init":
+        print(f"Unknown command: {command}. Usage: {CYAN}liem-os [init <project-name> | start]{RESET}")
+        sys.exit(1)
+
+    if len(sys.argv) < 3:
         print(f"Usage: {CYAN}liem-os init <project-name>{RESET}")
         sys.exit(1)
 
@@ -406,40 +476,72 @@ def cli_entrypoint():
     except Exception as e:
         print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}{RESET}")
 
-    print(f"\n{GREEN}Project '{project_name}' successfully initialized!{RESET}")
-    print(f"{MAGENTA}To run the engine using the virtual environment:{RESET}")
-    print(f"  {CYAN}cd {project_name}{RESET}")
-    if os.name == "nt":
-        print(f"  {CYAN}..\\.venv\\Scripts\\python.exe src\\liem_os\\main.py{RESET}")
+    # Generate 1-click batch script for Windows (run.bat)
+    run_bat_content = """@echo off
+title LIEM OS Engine
+echo [Liem OS] Launching visual dashboard and orchestrator...
+..\\.venv\\Scripts\\python.exe src\\liem_os\\main.py start
+if %errorlevel% neq 0 (
+    echo [Liem OS] Error: Could not launch engine.
+    pause
+)
+"""
+    try:
+        with open(os.path.join(project_name, "run.bat"), "w", encoding="utf-8") as f:
+            f.write(run_bat_content)
+    except Exception as e:
+        print(f"{MAGENTA}Warning: Could not create run.bat: {e}{RESET}")
+
+    # Generate 1-click shell script for Unix/macOS (run.sh)
+    run_sh_content = """#!/bin/bash
+echo "[Liem OS] Launching visual dashboard and orchestrator..."
+../.venv/bin/python src/liem_os/main.py start
+"""
+    try:
+        sh_path = os.path.join(project_name, "run.sh")
+        with open(sh_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(run_sh_content)
+        # Make the shell script executable
+        os.chmod(sh_path, 0o755)
+    except Exception as e:
+        print(f"{MAGENTA}Warning: Could not create run.sh: {e}{RESET}")
+
+    # Print beautiful, colorized CLI Card
+    if os.name == 'nt':
+        card = f"""
+{GREEN}.------------------------------------------------------------.
+|                                                            |
+|  {GREEN}SUCCESS:{RESET} Project '{CYAN}{project_name}{RESET}' initialized successfully!
+|                                                            |
+|  To launch the visual dashboard & orchestrator:            |
+|                                                            |
+|  {MAGENTA}[Option A] 1-Click Launch (Windows Explorer){RESET}         |
+|  -> Double-click the {CYAN}run.bat{RESET} file inside the project folder. |
+|                                                            |
+|  {MAGENTA}[Option B] Terminal Command{RESET}                           |
+|  -> {CYAN}cd {project_name}{RESET}                                         |
+|  -> {CYAN}..\\.venv\\Scripts\\liem-os start{RESET}                      |
+|                                                            |
+'------------------------------------------------------------'{RESET}"""
     else:
-        print(f"  {CYAN}../.venv/bin/python src/liem_os/main.py{RESET}")
-
-
+        card = f"""
+{GREEN}.------------------------------------------------------------.
+|                                                            |
+|  {GREEN}SUCCESS:{RESET} Project '{CYAN}{project_name}{RESET}' initialized successfully!
+|                                                            |
+|  To launch the visual dashboard & orchestrator:            |
+|                                                            |
+|  {MAGENTA}[Option A] Terminal Launch{RESET}                           |
+|  -> {CYAN}cd {project_name}{RESET}                                         |
+|  -> {CYAN}./run.sh{RESET}                                                |
+|                                                            |
+|  {MAGENTA}[Option B] Direct CLI Command{RESET}                        |
+|  -> {CYAN}cd {project_name}{RESET}                                         |
+|  -> {CYAN}../.venv/bin/liem-os start{RESET}                             |
+|                                                            |
+'------------------------------------------------------------'{RESET}"""
+    
+    print(card)
 
 if __name__ == "__main__":
-    import threading
-    import webview
-    import uvicorn
-    from liem_os.server import app
-
-    def start_server():
-        # Run uvicorn server silently in a background thread
-        uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
-
-    print("[Main] Starting Dashboard server on http://127.0.0.1:8000 in background...")
-    server_thread = threading.Thread(target=start_server, daemon=True)
-    server_thread.start()
-
-    print("[Main] Launching Native Desktop GUI Application...")
-    # Open pywebview native desktop window loading the FastAPI root
-    webview.create_window(
-        title="LIEM OS - Enterprise Multi-Agent Orchestrator",
-        url="http://127.0.0.1:8000/",
-        width=1280,
-        height=800,
-        resizable=True,
-        min_size=(1024, 768)
-    )
-    # Start the desktop window loop (blocks until window is closed)
-    webview.start()
-    print("[Main] Desktop GUI window closed. Exiting LIEM OS.")
+    start_engine()

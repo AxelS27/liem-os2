@@ -168,15 +168,21 @@ Once the orchestrator is ready, you can bootstrap a new workspace for any softwa
    *(Note: For Unix/macOS, use `.venv/bin/liem-os` instead).*
 
 4. **Start Engine & Dashboard GUI**
-   Start the Liem OS desktop GUI and FastAPI server. Because the GUI blocks, you must launch it in a separate external command prompt:
-   ```bash
-   # On Windows
-   start cmd /k ..\.venv\Scripts\python.exe src\liem_os\main.py
-   
-   # On macOS/Linux
-   ../.venv/bin/python src/liem_os/main.py &
-   ```
-   *(This opens the native desktop dashboard loaded on `http://127.0.0.1:8000/` in standby mode).*
+   To launch the visual dashboard and backend engine, simply do one of the following inside your project folder:
+   - **Option A (1-Click Launch - Windows Explorer)**: 
+     Double-click the auto-generated **`run.bat`** file inside the project folder.
+   - **Option B (1-Click Launch - Unix/macOS)**: 
+     Run **`./run.sh`** in the project folder.
+   - **Option C (CLI Command)**: 
+     Run the CLI start command:
+     ```bash
+     # On Windows
+     ..\.venv\Scripts\liem-os start
+     
+     # On macOS/Linux
+     ../.venv/bin/liem-os start
+     ```
+   *(This starts the FastAPI server and launches the PyWebView desktop application instantly).*
 
 ---
 
