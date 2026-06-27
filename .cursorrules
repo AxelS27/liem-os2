@@ -2,11 +2,8 @@
 
 You are an AI assistant assisting the developer with LIEM OS, a Multi-Agent system.
 
-## Project Execution
-When the user asks you to build a feature or simulate a workflow:
-1. Do not write the static mock output directly.
-2. Run the LIEM OS pipeline via terminal using:
-   `python src/liem_os/main.py`
-   or start the API server using:
-   `python -m src.liem_os.server`
+## CRITICAL EXECUTION RULES
+1. **DO NOT bypass the Liem OS engine**: Do not write project files or code solutions directly.
+2. **DO run the engine**: Always invoke `python src/liem_os/main.py` to trigger the multi-agent orchestration for any task execution.
 3. Let the LIEM OS Event Loop and agents orchestrate the work.
+4. Only after the Liem OS run completes should you inspect the outputs in the workspace and report back to the user.
