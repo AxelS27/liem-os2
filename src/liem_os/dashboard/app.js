@@ -361,6 +361,13 @@ function switchTab(tabId) {
     
     const content = document.getElementById(tabId);
     if (content) content.classList.add("active");
+
+    if (tabId === "tab-security") {
+        const metricsContainer = document.getElementById("security-metrics");
+        if (metricsContainer && metricsContainer.innerHTML.trim() === "") {
+            runSecurityScan();
+        }
+    }
 }
 
 // Details Modal
@@ -809,4 +816,140 @@ async function updatePlanList() {
     } catch (e) {
         console.error("Error updating plan list:", e);
     }
+}
+
+// Security Guard Integration
+async function runSecurityScan() {
+    const btn = document.getElementById("btn-run-security");
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Scanning...`;
+    }
+
+    const grid = document.getElementById("security-grid-container");
+    const metrics = document.getElementById("security-metrics");
+    
+    if (grid) {
+        grid.innerHTML = `<div class="log-system running-status"><span class="status-dot"></span><span>Auditing skills in progress...</span></div>`;
+    }
+
+    try {
+        const response = await fetch("/api/security/scan");
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            displaySecurityResults(data);
+        } else {
+            if (grid) grid.innerHTML = `<div class="log-system failed-status"><span class="status-dot"></span><span>Error: ${data.detail || "Failed to scan"}</span></div>`;
+        }
+    } catch (error) {
+        console.error("Security scan error:", error);
+        if (grid) grid.innerHTML = `<div class="log-system failed-status"><span class="status-dot"></span><span>Error connecting to server.</span></div>`;
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-shield-halved"></i> Run Scan`;
+        }
+    }
+}
+
+function displaySecurityResults(data) {
+    const metricsContainer = document.getElementById("security-metrics");
+    const gridContainer = document.getElementById("security-grid-container");
+    
+    if (!metricsContainer || !gridContainer) return;
+    
+    // Update metrics
+    const overall = data.overall_status.toLowerCase();
+    const overallIcon = overall === "safe" ? "fa-shield-check" : (overall === "warning" ? "fa-triangle-exclamation" : "fa-shield-xmark");
+    
+    metricsContainer.innerHTML = `
+        <div class="security-metric-card ${overall}">
+            <i class="fa-solid ${overallIcon}"></i>
+            <div class="security-metric-details">
+                <span class="security-metric-value" style="text-transform: uppercase;">${data.overall_status}</span>
+                <span class="security-metric-label">System Security Status</span>
+            </div>
+        </div>
+        <div class="security-metric-card">
+            <i class="fa-solid fa-book-open" style="color: var(--accent-color);"></i>
+            <div class="security-metric-details">
+                <span class="security-metric-value">${data.metrics.total_skills}</span>
+                <span class="security-metric-label">Total Skills Audited</span>
+            </div>
+        </div>
+        <div class="security-metric-card">
+            <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning-color);"></i>
+            <div class="security-metric-details">
+                <span class="security-metric-value">${data.metrics.warning + data.metrics.vulnerable}</span>
+                <span class="security-metric-label">Skills with Warnings/Vulnerabilities</span>
+            </div>
+        </div>
+    `;
+
+    // Update report list
+    gridContainer.innerHTML = "";
+    if (data.reports.length === 0) {
+        gridContainer.innerHTML = `<div class="log-system completed-status"><span class="status-dot"></span><span>No skills found in the project root.</span></div>`;
+        return;
+    }
+
+    data.reports.forEach(report => {
+        const card = document.createElement("div");
+        card.className = "security-card";
+        
+        const rec = report.recommendation.toLowerCase();
+        const score = report.risk_score;
+        const findings = report.findings || [];
+        
+        let statusClass = "safe";
+        if (rec !== "safe" || score > 50) statusClass = "vulnerable";
+        else if (score > 30) statusClass = "warning";
+        
+        let findingsHtml = "";
+        if (findings.length > 0) {
+            findings.forEach(finding => {
+                const isHigh = finding.severity === "HIGH" || finding.severity === "CRITICAL";
+                findingsHtml += `
+                    <div class="security-finding-item ${isHigh ? 'vulnerable' : 'warning'}">
+                        <div class="security-finding-header">
+                            <span style="color: ${isHigh ? 'var(--error-color)' : 'var(--warning-color)'}; font-weight: 600;">
+                                <i class="fa-solid fa-bug"></i> ${finding.category} (${finding.pattern})
+                            </span>
+                            <span style="font-size: 10px; color: var(--text-secondary);">${finding.severity} Severity</span>
+                        </div>
+                        <div class="security-finding-desc">${finding.explanation}</div>
+                        ${finding.file ? `<div style="font-size: 10px; margin-bottom: 4px; color: var(--text-secondary);">File: <code>${finding.file}</code>${finding.line ? ` (Line ${finding.line})` : ''}</div>` : ''}
+                        ${finding.code_snippet ? `<pre class="security-finding-code"><code>${escapeHtml(finding.code_snippet)}</code></pre>` : ''}
+                    </div>
+                `;
+            });
+        } else {
+            findingsHtml = `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 8px;"><i class="fa-solid fa-check" style="color: var(--success-color); margin-right: 4px;"></i> No vulnerabilities or roguish behaviors detected.</div>`;
+        }
+
+        card.innerHTML = `
+            <div class="security-card-header">
+                <span class="security-card-title">
+                    <i class="fa-solid fa-folder-open" style="color: var(--accent-color);"></i> ${report.skill_name}
+                </span>
+                <span class="security-status-badge ${statusClass}">
+                    Risk Score: ${score}/100
+                </span>
+            </div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Path: <code>${report.path}</code></div>
+            ${findingsHtml}
+        `;
+        gridContainer.appendChild(card);
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return "";
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }

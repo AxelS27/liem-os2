@@ -1,9 +1,11 @@
 import asyncio
 import logging
-from typing import Dict, Any
+import os
+from typing import Dict, Any, Optional
 from .event_bus import EventBus
 from .vram_manager import VRAMManager
 from liem_os.storage.db_interface import BaseStateRepository
+from liem_os.kernel.security import SkillSpectorScanner
 
 logger = logging.getLogger("LiemKernel")
 
@@ -22,10 +24,44 @@ class KernelEventLoop:
     async def boot(self) -> None:
         logger.info("[Kernel] Booting LIEM OS engine...")
         self.running = True
+        
+        # Run security check on all loaded skills
+        await self._run_security_audit()
+        
         # Subscribe to task completion channel to trigger state machine checks
         self.event_bus.subscribe("task.status.completed", self._on_task_completed)
         self.event_bus.subscribe("task.status.failed", self._on_task_failed)
         logger.info("[Kernel] Boot complete. All core services online.")
+
+    async def _run_security_audit(self) -> None:
+        logger.info("[Kernel] Starting SkillSpector security audit on loaded skills...")
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        skills_root = os.path.join(project_root, ".claude", "skills")
+        
+        try:
+            # Run in thread pool to prevent blocking event loop
+            results = await asyncio.to_thread(SkillSpectorScanner.scan_all_skills, skills_root)
+            
+            vulnerable_skills = 0
+            for report in results:
+                name = report.get("skill_name")
+                score = report.get("risk_score", 0)
+                severity = report.get("severity", "LOW")
+                rec = report.get("recommendation", "SAFE")
+                
+                if rec != "SAFE" or score > 50:
+                    logger.warning(f"[Kernel] [SECURITY WARNING] Skill '{name}' is UNTRUSTED! Risk Score: {score}/100, Severity: {severity}. Please review immediately.")
+                    vulnerable_skills += 1
+                else:
+                    logger.info(f"[Kernel] Skill '{name}' passed security audit. Risk Score: {score}/100 (Safe).")
+                    
+            if vulnerable_skills > 0:
+                logger.warning(f"[Kernel] Security audit complete with {vulnerable_skills} warnings. System is ONLINE but compromised skills exist.")
+            else:
+                logger.info("[Kernel] Security audit complete. All skills passed verification.")
+        except Exception as e:
+            logger.error(f"[Kernel] Failed to run security audit: {e}")
+
 
     async def shutdown(self) -> None:
         logger.info("[Kernel] Shutting down LIEM OS engine...")

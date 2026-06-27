@@ -1356,4 +1356,153 @@ body {
     margin-bottom: 4px;
 }
 
+/* SECURITY GUARD TAB STYLING */
+.security-metrics-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.security-metric-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.security-metric-card i {
+    font-size: 28px;
+}
+
+.security-metric-card.safe i {
+    color: var(--success-color);
+}
+
+.security-metric-card.warning i {
+    color: var(--warning-color);
+}
+
+.security-metric-card.vulnerable i {
+    color: var(--error-color);
+}
+
+.security-metric-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.security-metric-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.security-metric-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.security-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.security-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.security-card:hover {
+    border-color: var(--accent-color);
+}
+
+.security-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.security-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.security-status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.security-status-badge.safe {
+    background-color: rgba(46, 204, 113, 0.1);
+    color: var(--success-color);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.security-status-badge.warning {
+    background-color: rgba(241, 196, 15, 0.1);
+    color: var(--warning-color);
+    border: 1px solid rgba(241, 196, 15, 0.3);
+}
+
+.security-status-badge.vulnerable {
+    background-color: rgba(231, 76, 60, 0.1);
+    color: var(--error-color);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.security-finding-item {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid var(--error-color);
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+.security-finding-item.warning {
+    border-left-color: var(--warning-color);
+}
+
+.security-finding-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.security-finding-desc {
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-size: 11px;
+}
+
+.security-finding-code {
+    font-family: var(--font-mono);
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 6px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 10px;
+    color: #e74c3c;
+    border: 1px solid rgba(231, 76, 60, 0.1);
+}
+
 

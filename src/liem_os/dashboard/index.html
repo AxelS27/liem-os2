@@ -109,6 +109,9 @@
                 <button class="tab-btn" id="btn-tab-tasks" onclick="switchTab('tab-tasks')">
                     <i class="fa-solid fa-list-check"></i> Tasks & History
                 </button>
+                <button class="tab-btn" id="btn-tab-security" onclick="switchTab('tab-security')">
+                    <i class="fa-solid fa-shield-halved"></i> Security Guard
+                </button>
             </div>
 
             <!-- Tab Content Containers -->
@@ -247,6 +250,32 @@ v0.6.0 | Declarative Multi-Agent Orchestrator
                                 <!-- Dynamically populated rows -->
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-security">
+                <div class="tab-panel-body">
+                    <div class="tab-header-row">
+                        <div class="tab-header-title">SkillSpector Security Guard</div>
+                        <div class="tab-header-actions">
+                            <button class="toolbar-btn reset-btn" id="btn-run-security" onclick="runSecurityScan()" title="Audit workspace skills for vulnerabilities">
+                                <i class="fa-solid fa-shield-halved"></i> Run Scan
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Security metrics -->
+                    <div class="security-metrics-container" id="security-metrics">
+                        <!-- Dynamically populated metrics -->
+                    </div>
+
+                    <!-- Security findings list -->
+                    <div class="security-findings-container">
+                        <div class="tab-header-title" style="font-size: 1.1rem; margin-bottom: 12px; margin-top: 20px;">Audited Skills & Findings</div>
+                        <div class="security-grid" id="security-grid-container">
+                            <!-- Dynamically populated report items -->
+                        </div>
                     </div>
                 </div>
             </div>

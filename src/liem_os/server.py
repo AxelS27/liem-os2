@@ -92,6 +92,7 @@ from liem_os.kernel.event_loop import KernelEventLoop
 from liem_os.kernel.scheduler import CoreScheduler
 from liem_os.kernel.recovery import RecoveryManager
 from liem_os.agents.context import ContextCompressor
+from liem_os.kernel.security import SkillSpectorScanner
 
 app = FastAPI(title="LIEM OS API Server")
 
@@ -797,6 +798,54 @@ async def get_agents():
 @app.get("/api/skills")
 async def get_skills():
     return get_declarative_skills()
+
+@app.get("/api/security/scan")
+async def scan_security():
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    skills_root = os.path.join(project_root, ".claude", "skills")
+    
+    try:
+        results = await asyncio.to_thread(SkillSpectorScanner.scan_all_skills, skills_root)
+        
+        total_skills = len(results)
+        vulnerable_count = 0
+        warning_count = 0
+        safe_count = 0
+        total_findings = 0
+        
+        for r in results:
+            rec = r.get("recommendation", "SAFE")
+            score = r.get("risk_score", 0)
+            findings_len = len(r.get("findings", []))
+            total_findings += findings_len
+            
+            if rec != "SAFE" or score > 50:
+                vulnerable_count += 1
+            elif score > 30:
+                warning_count += 1
+            else:
+                safe_count += 1
+                
+        overall_status = "SAFE"
+        if vulnerable_count > 0:
+            overall_status = "VULNERABLE"
+        elif warning_count > 0:
+            overall_status = "WARNING"
+            
+        return {
+            "status": "success",
+            "overall_status": overall_status,
+            "metrics": {
+                "total_skills": total_skills,
+                "safe": safe_count,
+                "warning": warning_count,
+                "vulnerable": vulnerable_count,
+                "total_findings": total_findings
+            },
+            "reports": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to execute security audit: {str(e)}")
 
 # Serve Dashboard files
 DASHBOARD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard")
