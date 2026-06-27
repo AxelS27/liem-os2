@@ -147,11 +147,15 @@ First, clone and set up the orchestrator engine on your local machine:
    ```
 
 2. **Bootstrap the Virtual Environment**
-   Run the bootstrapping script to automatically set up the virtual environment (`.venv`) and install all package dependencies (including PyWebView, SkillSpector, specify-cli, and required packages):
-   ```bash
-   python bootstrap.py
-   ```
-   *(This also compiles the local package in editable mode and configures token-optimizing RTK hooks).*
+   Run the bootstrapping script to automatically set up the virtual environment (`.venv`) and install all dependencies:
+   - **On Windows (1-Click Launch)**:
+     Double-click the **`bootstrap.bat`** file in your file explorer.
+   - **On macOS/Linux**:
+     Run the Python script in your terminal:
+     ```bash
+     python bootstrap.py
+     ```
+   *(This creates the `.venv` folder, compiles the package, and installs specify-cli and other tools automatically).*
 
 ---
 
