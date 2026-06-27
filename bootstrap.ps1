@@ -108,30 +108,42 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
     }
 }
 
-# Clean existing .venv if present to ensure clean install
-if (Test-Path ".venv") {
-    Write-Host "[Bootstrap] Removing existing .venv folder..."
-    Remove-Item -Recurse -Force ".venv"
-}
-
 # 4. Create virtual environment
 $venvCreated = $false
-Write-Host "[Bootstrap] Creating virtual environment (.venv)..."
-if ($hasPython) {
-    try {
-        uv venv .venv
-        Write-Host "[Bootstrap] Virtual environment created using default Python." -ForegroundColor Green
-        $venvCreated = $true
-    } catch {
-        Write-Host "[Bootstrap] Failed to create venv using default Python: $_" -ForegroundColor Yellow
-    }
-}
+$venvPython = ".venv\Scripts\python.exe"
 
-if (-not $venvCreated) {
-    Write-Host "[Bootstrap] Installing Python $pythonVersion using uv..." -ForegroundColor Yellow
-    uv python install $pythonVersion
-    uv venv .venv --python $pythonVersion
-    Write-Host "[Bootstrap] Virtual environment created using Python $pythonVersion." -ForegroundColor Green
+if ((Test-Path ".venv") -and (Test-Path $venvPython)) {
+    Write-Host "[Bootstrap] Existing virtual environment (.venv) detected. Reusing it to update dependencies..." -ForegroundColor Green
+    $venvCreated = $true
+} else {
+    if (Test-Path ".venv") {
+        try {
+            Write-Host "[Bootstrap] Cleaning incomplete/corrupted .venv directory..."
+            Remove-Item -Recurse -Force ".venv"
+        } catch {
+            Write-Host "[Bootstrap] Warning: Could not remove existing .venv folder: $_" -ForegroundColor Yellow
+            Write-Host "[Bootstrap] Please close any active terminal shells, editor instances, or dashboard servers locking the virtual environment." -ForegroundColor Yellow
+        }
+    }
+    
+    Write-Host "[Bootstrap] Creating virtual environment (.venv)..."
+    if ($hasPython) {
+        try {
+            uv venv .venv
+            Write-Host "[Bootstrap] Virtual environment created using default Python." -ForegroundColor Green
+            $venvCreated = $true
+        } catch {
+            Write-Host "[Bootstrap] Failed to create venv using default Python: $_" -ForegroundColor Yellow
+        }
+    }
+
+    if (-not $venvCreated) {
+        Write-Host "[Bootstrap] Installing Python $pythonVersion using uv..." -ForegroundColor Yellow
+        uv python install $pythonVersion
+        uv venv .venv --python $pythonVersion
+        Write-Host "[Bootstrap] Virtual environment created using Python $pythonVersion." -ForegroundColor Green
+        $venvCreated = $true
+    }
 }
 
 # 5. Install package and dependencies in editable mode

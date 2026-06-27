@@ -147,26 +147,30 @@ def main():
                 break
                 
     # 3. Create virtual environment
-    # Try default Python first, if it fails or errors, download 3.12.10
     venv_created = False
-    print("[Bootstrap] Creating virtual environment (.venv) using uv...")
+    venv_python = os.path.join(".venv", "Scripts", "python.exe") if os.name == 'nt' else os.path.join(".venv", "bin", "python")
     
-    # We clean up any pre-existing .venv to ensure a fresh, clean install
-    if os.path.exists(".venv"):
-        try:
-            print("[Bootstrap] Cleaning existing .venv directory...")
-            shutil.rmtree(".venv")
-        except Exception as e:
-            print(f"[Bootstrap] Warning: Could not remove existing .venv folder: {e}")
-            
-    try:
-        # Run uv venv with default python
-        subprocess.check_call([uv_bin, "venv", ".venv"])
-        print("[Bootstrap] Virtual environment created successfully using default Python.")
+    if os.path.exists(".venv") and os.path.exists(venv_python):
+        print("[Bootstrap] Existing virtual environment (.venv) detected. Reusing it to update dependencies...")
         venv_created = True
-    except Exception as e:
-        print(f"[Bootstrap] Default Python venv creation failed or errored: {e}.")
+    else:
+        print("[Bootstrap] Creating virtual environment (.venv) using uv...")
+        if os.path.exists(".venv"):
+            try:
+                print("[Bootstrap] Cleaning incomplete/corrupted .venv directory...")
+                shutil.rmtree(".venv")
+            except Exception as e:
+                print(f"[Bootstrap] Warning: Could not remove existing .venv folder: {e}")
+                print("[Bootstrap] Please close any active terminal shells, editor instances, or dashboard servers locking the virtual environment.")
         
+        try:
+            # Run uv venv with default python
+            subprocess.check_call([uv_bin, "venv", ".venv"])
+            print("[Bootstrap] Virtual environment created successfully using default Python.")
+            venv_created = True
+        except Exception as e:
+            print(f"[Bootstrap] Default Python venv creation failed or errored: {e}.")
+            
     if not venv_created:
         try:
             # Install python 3.12.10 via uv
