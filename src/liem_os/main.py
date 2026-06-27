@@ -463,12 +463,26 @@ def cli_entrypoint():
             
         # 1. Run specify init to set up shared infrastructure and default Gemini integration
         cmd_init = [specify_bin, "init", "--here", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
-        result_init = subprocess.run(cmd_init, cwd=project_name, capture_output=True, text=True)
+        result_init = subprocess.run(
+            cmd_init, 
+            cwd=project_name, 
+            capture_output=True, 
+            text=True, 
+            encoding="utf-8", 
+            errors="ignore"
+        )
         
         if result_init.returncode == 0:
             # 2. Run specify integration install to set up Claude Code integration
             cmd_claude = [specify_bin, "integration", "install", "claude", "--force"]
-            result_claude = subprocess.run(cmd_claude, cwd=project_name, capture_output=True, text=True)
+            result_claude = subprocess.run(
+                cmd_claude, 
+                cwd=project_name, 
+                capture_output=True, 
+                text=True, 
+                encoding="utf-8", 
+                errors="ignore"
+            )
             
             if result_claude.returncode == 0:
                 print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit (Gemini & Claude Code integrations)!{RESET}")
