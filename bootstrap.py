@@ -203,12 +203,27 @@ def main():
 |                                        |
 '----------------------------------------'"""
     print(f"\n{CYAN}{art}{RESET}")
-    print(f"\n{GREEN}=== BOOTSTRAP COMPLETE ==={RESET}")
-    print("LIEM OS is ready to run. Start by running:")
     if os.name == 'nt':
-        print(f"  {CYAN}.venv\\Scripts\\liem-os init <project-name>{RESET}")
+        card = f"""
+{GREEN}.------------------------------------------------------------.
+|                                                            |
+|  {GREEN}SUCCESS:{RESET} LIEM OS bootstrap completed successfully!      |
+|                                                            |
+|  To initialize your first project workspace, run:          |
+|  -> {CYAN}.venv\\Scripts\\liem-os init <project-name>{RESET}           |
+|                                                            |
+'------------------------------------------------------------'{RESET}"""
     else:
-        print(f"  {CYAN}.venv/bin/liem-os init <project-name>{RESET}")
+        card = f"""
+{GREEN}.------------------------------------------------------------.
+|                                                            |
+|  {GREEN}SUCCESS:{RESET} LIEM OS bootstrap completed successfully!      |
+|                                                            |
+|  To initialize your first project workspace, run:          |
+|  -> {CYAN}.venv/bin/liem-os init <project-name>{RESET}               |
+|                                                            |
+'------------------------------------------------------------'{RESET}"""
+    print(card)
 
 
 
