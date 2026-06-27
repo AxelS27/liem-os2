@@ -506,42 +506,64 @@ echo "[Liem OS] Launching visual dashboard and orchestrator..."
     except Exception as e:
         print(f"{MAGENTA}Warning: Could not create run.sh: {e}{RESET}")
 
-    # Print beautiful, colorized CLI Card
-    if os.name == 'nt':
-        card = f"""
-{GREEN}.------------------------------------------------------------.
-|                                                            |
-|  {GREEN}SUCCESS:{RESET} Project '{CYAN}{project_name}{RESET}' initialized successfully!
-|                                                            |
-|  To launch the visual dashboard & orchestrator:            |
-|                                                            |
-|  {MAGENTA}[Option A] 1-Click Launch (Windows Explorer){RESET}         |
-|  -> Double-click the {CYAN}run.bat{RESET} file inside the project folder. |
-|                                                            |
-|  {MAGENTA}[Option B] Terminal Command{RESET}                           |
-|  -> {CYAN}cd {project_name}{RESET}                                         |
-|  -> {CYAN}..\\.venv\\Scripts\\liem-os start{RESET}                      |
-|                                                            |
-'------------------------------------------------------------'{RESET}"""
-    else:
-        card = f"""
-{GREEN}.------------------------------------------------------------.
-|                                                            |
-|  {GREEN}SUCCESS:{RESET} Project '{CYAN}{project_name}{RESET}' initialized successfully!
-|                                                            |
-|  To launch the visual dashboard & orchestrator:            |
-|                                                            |
-|  {MAGENTA}[Option A] Terminal Launch{RESET}                           |
-|  -> {CYAN}cd {project_name}{RESET}                                         |
-|  -> {CYAN}./run.sh{RESET}                                                |
-|                                                            |
-|  {MAGENTA}[Option B] Direct CLI Command{RESET}                        |
-|  -> {CYAN}cd {project_name}{RESET}                                         |
-|  -> {CYAN}../.venv/bin/liem-os start{RESET}                             |
-|                                                            |
-'------------------------------------------------------------'{RESET}"""
-    
-    print(card)
+    # Print beautiful, colorized CLI Card using Rich (with a clean fallback)
+    try:
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.text import Text
+        
+        console = Console()
+        text = Text()
+        text.append("SUCCESS: ", style="bold green")
+        text.append(f"Project '{project_name}' initialized successfully!\n\n", style="bold cyan")
+        
+        text.append("To launch the visual dashboard & orchestrator:\n\n", style="bold white")
+        
+        if os.name == 'nt':
+            text.append("[Option A] 1-Click Launch (Windows Explorer)\n", style="bold magenta")
+            text.append(f"-> Double-click the run.bat file inside the project folder.\n\n", style="cyan")
+            
+            text.append("[Option B] Terminal Command\n", style="bold magenta")
+            text.append(f"-> cd {project_name}\n", style="cyan")
+            text.append(f"-> ..\\.venv\\Scripts\\liem-os start\n", style="cyan")
+        else:
+            text.append("[Option A] Terminal Launch\n", style="bold magenta")
+            text.append(f"-> cd {project_name}\n", style="cyan")
+            text.append(f"-> ./run.sh\n\n", style="cyan")
+            
+            text.append("[Option B] Direct CLI Command\n", style="bold magenta")
+            text.append(f"-> cd {project_name}\n", style="cyan")
+            text.append(f"-> ../.venv/bin/liem-os start\n", style="cyan")
+            
+        panel = Panel(
+            text,
+            title="[bold green]LIEM OS ENGINE[/bold green]",
+            border_style="green",
+            expand=False,
+            padding=(1, 2)
+        )
+        print()  # Add newline spacing
+        console.print(panel)
+        
+    except ImportError:
+        # Fallback to simple clean text if rich is not available (avoids alignment issues)
+        print(f"\n{GREEN}============================================================{RESET}")
+        print(f"{GREEN}SUCCESS:{RESET} Project '{CYAN}{project_name}{RESET}' initialized successfully!")
+        print(f"\n{MAGENTA}To launch the visual dashboard & orchestrator:{RESET}")
+        if os.name == 'nt':
+            print(f"\n{MAGENTA}[Option A] 1-Click Launch (Windows Explorer){RESET}")
+            print(f"-> Double-click the {CYAN}run.bat{RESET} file inside the project folder.")
+            print(f"\n{MAGENTA}[Option B] Terminal Command{RESET}")
+            print(f"-> cd {project_name}")
+            print(f"-> ..\\.venv\\Scripts\\liem-os start")
+        else:
+            print(f"\n{MAGENTA}[Option A] Terminal Launch{RESET}")
+            print(f"-> cd {project_name}")
+            print(f"-> ./run.sh")
+            print(f"\n{MAGENTA}[Option B] Direct CLI Command{RESET}")
+            print(f"-> cd {project_name}")
+            print(f"-> ../.venv/bin/liem-os start")
+        print(f"{GREEN}============================================================{RESET}")
 
 if __name__ == "__main__":
     start_engine()
