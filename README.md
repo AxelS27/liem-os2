@@ -220,6 +220,42 @@ Once your project is initialized, you develop code using the integrated SDD comm
     - **Antigravity (Gemini)**: `/speckit.converge`
     *(Once passed, push to GitHub where the GHA pipeline will run the final build validation!)*
 
+## 🤖 Interacting with Axel (User Copilot)
+
+**Axel** is your primary entrypoint, conversational copilot, and system gateway. When using the Liem OS Visual Dashboard, Axel orchestrates all background tasks and guides you through the execution steps.
+
+### 1. How to Chat with Axel
+- Launch the visual dashboard (using `run.bat` or `liem-os start`).
+- Locate the **Chat Console** at the bottom of the screen.
+- Type your commands directly (e.g. `@axel build a taxing module` or simple questions).
+
+---
+
+### 2. Conversational Queries vs. Task Execution
+
+Axel operates in two distinct modes depending on your input:
+
+#### A. Conversational Mode (General Inquiries)
+If you ask informational questions or chat, Axel replies instantly without triggering background agents:
+*   *Example:* `"Who are you?"` -> Axel will introduce himself and describe the orchestrator system roles.
+*   *Example:* `"How is the system running?"` -> Axel will report telemetry, system health, and VRAM offloading stats.
+
+#### B. Orchestration Mode (Agent Execution Triggers)
+If you command Axel to build, audit, or research, he activates the Control Plane:
+*   *Example:* `"Build a secure calculation backend."`
+*   *Workflow*:
+    1.  **Decomposition**: Axel triggers the **Core Planner** to generate a task execution plan.
+    2.  **Plan Approval (HITL)**: Axel halts execution and displays a structured `LIEM EXECUTION PLAN` table in the chat window, prompting you to approve it.
+    3.  **Task Routing**: Once approved, Axel coordinates the **Core Router** to dispatch tasks to active domain agents (e.g. `backend_agent`, `qa_agent`).
+    4.  **Narration**: Axel outputs real-time log updates as specialists work (e.g., *"DevOps Agent has completed deployment setup, handing over to QA Agent..."*).
+
+---
+
+### 3. Directing Axel to Setup SDD
+You can explicitly ask Axel to configure Spec-Driven Development (SDD) in your workspace if it hasn't been initialized:
+*   *Command:* `"Axel, setup spec-driven development here."`
+*   *Result*: Axel delegates this to the backend executor, which silently runs `specify init` to scaffold the `.claude/` and `.gemini/` configuration folders.
+
 ---
 
 
