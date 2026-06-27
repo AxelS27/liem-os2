@@ -367,8 +367,17 @@ def cli_entrypoint():
         print(f"[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}")
 
     print(f"\nProject '{project_name}' successfully initialized!")
-    print(f"To run the engine:")
+    print(f"To run the engine using the virtual environment:")
     print(f"  cd {project_name}")
+    if os.name == "nt":
+        print(f"  ..\\.venv\\Scripts\\python.exe src\\liem_os\\main.py")
+    else:
+        print(f"  ../.venv/bin/python src/liem_os/main.py")
+    print(f"\nAlternatively, activate the virtual environment first:")
+    if os.name == "nt":
+        print(f"  ..\\.venv\\Scripts\\activate")
+    else:
+        print(f"  source ../.venv/bin/activate")
     print(f"  python src/liem_os/main.py")
 
 if __name__ == "__main__":
