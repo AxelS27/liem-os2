@@ -26,6 +26,7 @@ Your job is to create architectural designs, write SQL schemas, and define OpenA
 
 ### PHASE 1 — SYSTEM TOPOLOGY & COMPONENT DESIGN
 Draw or specify the system component topology (Web Server, DB, Message Broker, Worker). Explain data flows and component communication (Sync HTTP vs Async events).
+*Note: You MUST write this System Design Specification directly into the workspace folder under the `specs/` directory (specifically as `specs/plan.md`).*
 
 ---
 

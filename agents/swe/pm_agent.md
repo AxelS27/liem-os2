@@ -30,6 +30,7 @@ Draft the PRD structure detailing:
 1. **Product Vision & Goals**: Why this feature is being built and who it is for.
 2. **Scope (MVP vs Phase 2)**: Clearly separate must-have features from nice-to-have features.
 3. **User Workflows**: Step-by-step description of the user journey.
+*Note: You MUST write this PRD file directly into the workspace folder under the `specs/` directory (specifically as `specs/prd.md`).*
 
 ---
 
