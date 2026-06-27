@@ -271,17 +271,53 @@ def cli_entrypoint():
     import zipfile
     import io
 
+    # ANSI Colors (High-contrast for both light/white and dark backgrounds)
+    CYAN = ""
+    GREEN = ""
+    MAGENTA = ""
+    RED = ""
+    RESET = ""
+    
+    # Enable Windows ANSI support using ctypes
+    if os.name == 'nt':
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            # Enable ENABLE_PROCESSED_OUTPUT (1) and ENABLE_VIRTUAL_TERMINAL_PROCESSING (4)
+            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+            CYAN = "\033[36m"
+            GREEN = "\033[32m"
+            MAGENTA = "\033[35m"
+            RED = "\033[31m"
+            RESET = "\033[0m"
+        except:
+            pass
+    else:
+        CYAN = "\033[36m"
+        GREEN = "\033[32m"
+        MAGENTA = "\033[35m"
+        RED = "\033[31m"
+        RESET = "\033[0m"
+
     if len(sys.argv) < 3 or sys.argv[1] != "init":
-        print("Usage: liem-os init <project_name>")
+        print(f"Usage: {CYAN}liem-os init <project-name>{RESET}")
         sys.exit(1)
 
     project_name = sys.argv[2]
     if os.path.exists(project_name):
-        print(f"Error: Folder '{project_name}' already exists.")
+        print(f"{RED}Error: Folder '{project_name}' already exists.{RESET}")
         sys.exit(1)
 
+    # Print Liem OS welcome ASCII art in cyan
+    print(f"\n{CYAN}==================================================")
+    print("   __    _  ____  __  ___    ____  ____")
+    print("  / /   / |/ /  |/  |/ _ \\  / __ \\/ __/")
+    print(" / /__ /    / /|_/ /  __ / / /_/ /\\ \\  ")
+    print("/____//_/|_/_/  /_/_/      \\____/___/  ")
+    print(f"=================================================={RESET}")
+
     os.makedirs(project_name)
-    print(f"Initializing new LIEM OS project: {project_name}...")
+    print(f"{GREEN}Initializing new LIEM OS project: {project_name}...{RESET}")
 
     # Folders to copy
     folders = ["kernel", "agents", "schemas", "registry", "sandbox", "src"]
@@ -300,10 +336,10 @@ def cli_entrypoint():
             src_path = os.path.join(base_path, f)
             dest_path = os.path.join(project_name, f)
             shutil.copytree(src_path, dest_path)
-        print("Successfully initialized templates from local package source.")
+        print(f"{GREEN}Successfully initialized templates from local package source.{RESET}")
     else:
         # Fallback: Download from GitHub repository
-        print("Local templates not found. Downloading from GitHub...")
+        print(f"{MAGENTA}Local templates not found. Downloading from GitHub...{RESET}")
         url = "https://github.com/AxelS27/liem-os2/archive/refs/heads/main.zip"
         try:
             req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
@@ -323,9 +359,9 @@ def cli_entrypoint():
                                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                                 with open(dest_path, "wb") as out_f:
                                     out_f.write(zip_ref.read(member))
-            print("Successfully initialized templates and engine from GitHub repository.")
+            print(f"{GREEN}Successfully initialized templates and engine from GitHub repository.{RESET}")
         except Exception as e:
-            print(f"Error downloading templates from GitHub: {e}")
+            print(f"{RED}Error downloading templates from GitHub: {e}{RESET}")
             sys.exit(1)
 
     # Restructure from package naming if extracted
@@ -337,7 +373,7 @@ def cli_entrypoint():
             pass
 
     # Automatically initialize GitHub Spec Kit in the new project
-    print("\n[Liem OS] Integrating Spec-Driven Development (GitHub Spec Kit)...")
+    print(f"\n{CYAN}[Liem OS] Integrating Spec-Driven Development (GitHub Spec Kit)...{RESET}")
     try:
         import subprocess
         # Try running using current python binary + module specify_cli
@@ -349,7 +385,7 @@ def cli_entrypoint():
             text=True
         )
         if result.returncode == 0:
-            print("[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!")
+            print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!{RESET}")
         else:
             # Fallback to standalone specify command
             cmd_fallback = ["specify", "init", "--here", "--integration", "claude", "--integration", "gemini", "--script", "ps", "--ignore-agent-tools", "--force"]
@@ -360,25 +396,26 @@ def cli_entrypoint():
                 text=True
             )
             if result_fallback.returncode == 0:
-                print("[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!")
+                print(f"{GREEN}[Liem OS] Successfully initialized Spec Kit templates, constitution, and agent skills!{RESET}")
             else:
-                print(f"[Liem OS] Warning: Could not initialize Spec Kit automatically: {result.stderr or result_fallback.stderr}")
+                print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {result.stderr or result_fallback.stderr}{RESET}")
     except Exception as e:
-        print(f"[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}")
+        print(f"{MAGENTA}[Liem OS] Warning: Could not initialize Spec Kit automatically: {e}{RESET}")
 
-    print(f"\nProject '{project_name}' successfully initialized!")
-    print(f"To run the engine using the virtual environment:")
+    print(f"\n{GREEN}Project '{project_name}' successfully initialized!{RESET}")
+    print("To run the engine using the virtual environment:")
     print(f"  cd {project_name}")
     if os.name == "nt":
-        print(f"  ..\\.venv\\Scripts\\python.exe src\\liem_os\\main.py")
+        print(f"  {CYAN}..\\.venv\\Scripts\\python.exe src\\liem_os\\main.py{RESET}")
     else:
-        print(f"  ../.venv/bin/python src/liem_os/main.py")
-    print(f"\nAlternatively, activate the virtual environment first:")
+        print(f"  {CYAN}../.venv/bin/python src/liem_os/main.py{RESET}")
+    print("\nAlternatively, activate the virtual environment first:")
     if os.name == "nt":
-        print(f"  ..\\.venv\\Scripts\\activate")
+        print(f"  {CYAN}..\\.venv\\Scripts\\activate{RESET}")
     else:
-        print(f"  source ../.venv/bin/activate")
-    print(f"  python src/liem_os/main.py")
+        print(f"  {CYAN}source ../.venv/bin/activate{RESET}")
+    print("  python src/liem_os/main.py")
+
 
 if __name__ == "__main__":
     import threading

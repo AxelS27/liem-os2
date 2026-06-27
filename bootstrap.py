@@ -171,12 +171,41 @@ def main():
         print(f"[Bootstrap] Error installing dependencies: {e}")
         sys.exit(1)
         
-    print("\n=== BOOTSTRAP COMPLETE ===")
+    # ANSI Colors
+    CYAN = ""
+    GREEN = ""
+    RESET = ""
+    
+    # Enable Windows ANSI support using ctypes
+    if os.name == 'nt':
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            # Enable ENABLE_PROCESSED_OUTPUT (1) and ENABLE_VIRTUAL_TERMINAL_PROCESSING (4)
+            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+            CYAN = "\033[36m"
+            GREEN = "\033[32m"
+            RESET = "\033[0m"
+        except:
+            pass
+    else:
+        CYAN = "\033[36m"
+        GREEN = "\033[32m"
+        RESET = "\033[0m"
+
+    print(f"\n{CYAN}==================================================")
+    print("   __    _  ____  __  ___    ____  ____")
+    print("  / /   / |/ /  |/  |/ _ \\  / __ \\/ __/")
+    print(" / /__ /    / /|_/ /  __ / / /_/ /\\ \\  ")
+    print("/____//_/|_/_/  /_/_/      \\____/___/  ")
+    print(f"=================================================={RESET}")
+    print(f"\n{GREEN}=== BOOTSTRAP COMPLETE ==={RESET}")
     print("LIEM OS is ready to run. Start by running:")
     if os.name == 'nt':
-        print("  .venv\\Scripts\\liem-os init test-project")
+        print(f"  {CYAN}.venv\\Scripts\\liem-os init <project-name>{RESET}")
     else:
-        print("  .venv/bin/liem-os init test-project")
+        print(f"  {CYAN}.venv/bin/liem-os init <project-name>{RESET}")
+
 
 if __name__ == "__main__":
     main()
