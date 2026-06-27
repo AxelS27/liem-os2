@@ -734,42 +734,8 @@ async def trigger_prompt(req: PromptRequest):
     logger.info(f"Received prompt command: {req.prompt}")
     telemetry_data["logs"].append(f"[User] {req.prompt}")
     
-    prompt_lower = req.prompt.strip().lower()
-    greetings = ["halo", "hello", "hi", "hey", "p", "test", "apa kabar", "siapa kamu", "who are you", "help", "tolong", "siapa"]
-    
-    # Check if prompt is a short conversational input or greeting (matching exact words to prevent substring issues)
-    prompt_words = prompt_lower.split()
-    is_greeting = any(w in greetings for w in prompt_words) or (prompt_lower in greetings)
-    if is_greeting or len(prompt_words) < 3:
-        async def run_conversational_reply():
-            vram_manager.load_model("axel")
-            await asyncio.sleep(0.8)
-            
-            # Query Gemini API if key is set, else use rules fallback
-            gemini_reply = get_gemini_reply(req.prompt)
-            if gemini_reply:
-                reply = f"[Axel] {gemini_reply}"
-            else:
-                if "siapa" in prompt_lower or "who" in prompt_lower:
-                    reply = "[Axel] Saya adalah Axel, User Copilot pendamping kamu di LIEM OS. Tugas saya membantu mendelegasikan tugas ke agent spesialis (seperti Backend Agent, QA Agent, dan DevOps Agent) serta memonitor perkembangannya."
-                elif "apa kabar" in prompt_lower or "how are you" in prompt_lower:
-                    reply = "[Axel] Saya sangat baik! Seluruh sistem LIEM OS berjalan optimal. VRAM aman, MCP servers terkoneksi, dan saya siap membantu pengerjaan project kamu."
-                elif "help" in prompt_lower or "tolong" in prompt_lower:
-                    reply = "[Axel] Kamu bisa memerintahkan saya untuk membuat project baru, seperti:\n- 'Buat payment endpoint dengan Stripe'\n- 'Bikin API kalkulator pajak'\n- 'Tolong audit keamanan kode'"
-                else:
-                    reply = (
-                        "[Axel] Halo! Saya mendeteksi percakapan biasa. Untuk mengobrol bebas dengan kecerdasan AI sesungguhnya, "
-                        "silakan atur environment variable **`GEMINI_API_KEY`** dengan API key kamu. "
-                        "Saat ini, kamu bisa menyuruh saya menjalankan simulasi coding dengan mengetik perintah tugas (misalnya: 'buat billing endpoint')."
-                    )
-                
-            telemetry_data["logs"].append(reply)
-            vram_manager.unload_model("axel")
-            
-        asyncio.create_task(run_conversational_reply())
-    else:
-        # Trigger the code generation pipeline simulation
-        asyncio.create_task(run_pipeline_simulation_task(req.prompt))
+    # Trigger the code generation pipeline simulation directly
+    asyncio.create_task(run_pipeline_simulation_task(req.prompt))
         
     return {"status": "dispatched", "message": "LIEM OS execution pipeline started."}
 
