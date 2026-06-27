@@ -302,14 +302,27 @@ def start_engine():
 '----------------------------------------'"""
     print(f"\n{CYAN}{art}{RESET}")
 
-    print(f"{GREEN}[Liem OS] Starting Dashboard server on http://127.0.0.1:8000 in background...{RESET}")
-    
-    def start_server():
-        # Run uvicorn server silently in a background thread
-        uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+    # Check if port 8000 is already active
+    def check_port_active(port):
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.connect(("127.0.0.1", port))
+                return True
+            except:
+                return False
 
-    server_thread = threading.Thread(target=start_server, daemon=True)
-    server_thread.start()
+    server_already_running = check_port_active(8000)
+    if server_already_running:
+        print(f"{GREEN}[Liem OS] Dashboard server is already active on http://127.0.0.1:8000. Skipping server startup.{RESET}")
+    else:
+        print(f"{GREEN}[Liem OS] Starting new Dashboard server on http://127.0.0.1:8000 in background...{RESET}")
+        def start_server():
+            # Run uvicorn server silently in a background thread
+            uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+
+        server_thread = threading.Thread(target=start_server, daemon=True)
+        server_thread.start()
 
     print(f"{GREEN}[Liem OS] Launching Native Desktop GUI Application...{RESET}")
     try:
